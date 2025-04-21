@@ -6,6 +6,7 @@ import 'package:meu_preco/presentation/pages/produto_list_page.dart';
 import 'package:meu_preco/presentation/pages/receita_detalhes_page.dart';
 import 'package:meu_preco/presentation/pages/receita_form_page.dart';
 import 'package:meu_preco/presentation/pages/receita_list_page.dart';
+import 'package:meu_preco/presentation/pages/sobre_page.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -71,6 +72,12 @@ final GoRouter router = GoRouter(
       builder: (BuildContext context, GoRouterState state) {
         final id = state.pathParameters['id']!;
         return ReceitaDetalhesPage(receitaId: id);
+      },
+    ),
+    GoRoute(
+      path: '/sobre',
+      builder: (BuildContext context, GoRouterState state) {
+        return const SobrePage();
       },
     ),
   ],
