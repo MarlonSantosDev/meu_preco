@@ -639,12 +639,25 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
     String unidadeSelecionada = produtoSelecionado.unidade;
     final quantidadeController = TextEditingController();
     String? fracaoSelecionada;
+    final inteiroController = TextEditingController(text: "0");
 
-    final unidades = ['kg', 'g', 'L', 'ml', 'unidade', 'colher de sopa', 'colher de chá', 'xícara'];
-    final fracoes = ['1', '1/2', '1/3', '1/4', '2/3', '3/4'];
-    final unidadesComFracao = ['colher de sopa', 'colher de chá', 'xícara'];
+    final unidades = [
+      'kg',
+      'g',
+      'L',
+      'ml',
+      'unidade',
+      'colher de sopa',
+      'colher de chá',
+      'xícara de chá',
+      'xícara de café',
+      'copo americano',
+    ];
+    final fracoes = ['1/2', '1/3', '1/4', '2/3', '3/4'];
+    final unidadesComFracao = ['colher de sopa', 'colher de chá', 'xícara de chá', 'xícara de café', 'copo americano'];
 
     bool usarFracao = false;
+    bool usarMisto = false;
     bool unidadePermiteFracao = unidadesComFracao.contains(unidadeSelecionada);
 
     showDialog(
@@ -676,8 +689,9 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                               // Verifica se a unidade selecionada permite fração
                               unidadePermiteFracao = unidadesComFracao.contains(unidadeSelecionada);
                               // Se a unidade não permitir fração, desabilita a opção
-                              if (!unidadePermiteFracao && usarFracao) {
+                              if (!unidadePermiteFracao && (usarFracao || usarMisto)) {
                                 usarFracao = false;
+                                usarMisto = false;
                                 fracaoSelecionada = null;
                               }
                             });
@@ -685,46 +699,68 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          const Text('Usar fração:'),
-                          Switch(
-                            value: usarFracao,
-                            onChanged:
-                                unidadePermiteFracao
-                                    ? (value) {
-                                      setState(() {
-                                        usarFracao = value;
-                                        // Limpa o campo de quantidade se mudar para fração
-                                        if (value) {
-                                          quantidadeController.clear();
-                                          fracaoSelecionada = '1';
-                                        } else {
-                                          fracaoSelecionada = null;
-                                        }
-                                      });
-                                    }
-                                    : null,
-                          ),
-                        ],
-                      ),
+                      if (unidadePermiteFracao) ...[
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 8.0),
+                          child: Text('Tipo de Medida:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                        ),
+                        SegmentedButton<String>(
+                          segments: const [
+                            ButtonSegment<String>(value: 'decimal', label: Text('Decimal')),
+                            ButtonSegment<String>(value: 'fracao', label: Text('Fração')),
+                            ButtonSegment<String>(value: 'misto', label: Text('Misto')),
+                          ],
+                          selected: {usarMisto ? 'misto' : (usarFracao ? 'fracao' : 'decimal')},
+                          onSelectionChanged: (Set<String> selection) {
+                            setState(() {
+                              final selected = selection.first;
+                              if (selected == 'decimal') {
+                                usarFracao = false;
+                                usarMisto = false;
+                                fracaoSelecionada = null;
+                              } else if (selected == 'fracao') {
+                                usarFracao = true;
+                                usarMisto = false;
+                                fracaoSelecionada = '1/2';
+                                quantidadeController.clear();
+                              } else if (selected == 'misto') {
+                                usarFracao = false;
+                                usarMisto = true;
+                                fracaoSelecionada = '1/2';
+                                inteiroController.text = '1';
+                                quantidadeController.clear();
+                              }
+                            });
+                          },
+                        ),
+                      ],
                       if (!unidadePermiteFracao)
                         const Padding(
                           padding: EdgeInsets.only(top: 4.0),
                           child: Text(
-                            'A opção de fração só está disponível para colher de sopa, colher de chá e xícara',
+                            'A opção de fração só está disponível para medidas como xícaras, copos e colheres',
                             style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                         ),
                       const SizedBox(height: 8),
-                      if (usarFracao)
+                      if (usarMisto)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
+                              flex: 1,
+                              child: TextFormField(
+                                controller: inteiroController,
+                                decoration: const InputDecoration(labelText: 'Inteiro', border: OutlineInputBorder()),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
                               flex: 2,
                               child: DropdownButtonFormField<String>(
-                                value: fracaoSelecionada ?? '1',
+                                value: fracaoSelecionada ?? '1/2',
                                 decoration: const InputDecoration(labelText: 'Fração', border: OutlineInputBorder()),
                                 items:
                                     fracoes.map((fracao) {
@@ -756,8 +792,60 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                                       // Verifica se a nova unidade permite fração
                                       unidadePermiteFracao = unidadesComFracao.contains(value);
                                       // Se a unidade não permitir fração, desabilita a opção
-                                      if (!unidadePermiteFracao && usarFracao) {
+                                      if (!unidadePermiteFracao && (usarFracao || usarMisto)) {
                                         usarFracao = false;
+                                        usarMisto = false;
+                                        fracaoSelecionada = null;
+                                      }
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        )
+                      else if (usarFracao)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: DropdownButtonFormField<String>(
+                                value: fracaoSelecionada ?? '1/2',
+                                decoration: const InputDecoration(labelText: 'Fração', border: OutlineInputBorder()),
+                                items:
+                                    fracoes.map((fracao) {
+                                      return DropdownMenuItem<String>(value: fracao, child: Text(fracao));
+                                    }).toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      fracaoSelecionada = value;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 2,
+                              child: DropdownButtonFormField<String>(
+                                value: unidadeSelecionada,
+                                decoration: const InputDecoration(labelText: 'Unidade', border: OutlineInputBorder()),
+                                items:
+                                    unidades.map((unidade) {
+                                      return DropdownMenuItem<String>(value: unidade, child: Text(unidade));
+                                    }).toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      unidadeSelecionada = value;
+                                      // Verifica se a nova unidade permite fração
+                                      unidadePermiteFracao = unidadesComFracao.contains(value);
+                                      // Se a unidade não permitir fração, desabilita a opção
+                                      if (!unidadePermiteFracao && (usarFracao || usarMisto)) {
+                                        usarFracao = false;
+                                        usarMisto = false;
                                         fracaoSelecionada = null;
                                       }
                                     });
@@ -800,8 +888,9 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                                       // Verifica se a nova unidade permite fração
                                       unidadePermiteFracao = unidadesComFracao.contains(value);
                                       // Se a unidade não permitir fração, desabilita a opção
-                                      if (!unidadePermiteFracao && usarFracao) {
+                                      if (!unidadePermiteFracao && (usarFracao || usarMisto)) {
                                         usarFracao = false;
+                                        usarMisto = false;
                                         fracaoSelecionada = null;
                                       }
                                     });
@@ -819,6 +908,7 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                   TextButton(
                     onPressed: () {
                       if (!usarFracao &&
+                          !usarMisto &&
                           (quantidadeController.text.isEmpty || double.tryParse(quantidadeController.text) == null)) {
                         ScaffoldMessenger.of(
                           context,
@@ -826,14 +916,31 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                         return;
                       }
 
+                      if (usarMisto &&
+                          (inteiroController.text.isEmpty || int.tryParse(inteiroController.text) == null)) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(const SnackBar(content: Text('Digite um valor inteiro válido.')));
+                        return;
+                      }
+
                       if (produtoSelecionado != null) {
                         double quantidade = 0;
+                        String? exibicaoFracao;
 
-                        if (!usarFracao) {
-                          quantidade = double.parse(quantidadeController.text);
-                        } else if (fracaoSelecionada != null) {
-                          // Converter a fração para um valor decimal para cálculos
+                        if (usarMisto) {
+                          // Pegar o inteiro e a fração
+                          int inteiro = int.parse(inteiroController.text);
+                          double fracaoValor = Ingrediente.converterFracao(fracaoSelecionada!);
+                          quantidade = inteiro + fracaoValor;
+                          exibicaoFracao = "$inteiro e $fracaoSelecionada";
+                        } else if (usarFracao) {
+                          // Usar apenas a fração
                           quantidade = Ingrediente.converterFracao(fracaoSelecionada!);
+                          exibicaoFracao = fracaoSelecionada;
+                        } else {
+                          // Usar apenas o valor decimal
+                          quantidade = double.parse(quantidadeController.text);
                         }
 
                         final novoIngrediente = Ingrediente(
@@ -841,7 +948,7 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                           produto: produtoSelecionado!,
                           quantidade: quantidade,
                           unidade: unidadeSelecionada,
-                          fracao: usarFracao ? fracaoSelecionada : null,
+                          fracao: exibicaoFracao,
                         );
 
                         // Fecha o diálogo e adiciona o ingrediente
@@ -877,14 +984,47 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
     final quantidadeController = TextEditingController(
       text: ingrediente.fracao == null ? ingrediente.quantidade.toString() : '',
     );
-    String? fracaoSelecionada = ingrediente.fracao;
+    String? fracaoSelecionada;
+    final inteiroController = TextEditingController(text: "0");
 
-    final unidades = ['kg', 'g', 'L', 'ml', 'unidade', 'colher de sopa', 'colher de chá', 'xícara'];
-    final fracoes = ['1', '1/2', '1/3', '1/4', '2/3', '3/4'];
-    final unidadesComFracao = ['colher de sopa', 'colher de chá', 'xícara'];
+    final unidades = [
+      'kg',
+      'g',
+      'L',
+      'ml',
+      'unidade',
+      'colher de sopa',
+      'colher de chá',
+      'xícara de chá',
+      'xícara de café',
+      'copo americano',
+    ];
+    final fracoes = ['1/2', '1/3', '1/4', '2/3', '3/4'];
+    final unidadesComFracao = ['colher de sopa', 'colher de chá', 'xícara de chá', 'xícara de café', 'copo americano'];
 
-    bool usarFracao = ingrediente.fracao != null;
+    bool usarFracao = false;
+    bool usarMisto = false;
     bool unidadePermiteFracao = unidadesComFracao.contains(unidadeSelecionada);
+
+    // Determinar o tipo de entrada com base no ingrediente atual
+    if (ingrediente.fracao != null) {
+      if (ingrediente.fracao!.contains('e')) {
+        // É um valor misto (1 e 1/2)
+        usarMisto = true;
+        final partes = ingrediente.fracao!.split(' e ');
+        if (partes.length == 2) {
+          inteiroController.text = partes[0];
+          fracaoSelecionada = partes[1];
+        }
+      } else {
+        // É uma fração simples
+        usarFracao = true;
+        fracaoSelecionada = ingrediente.fracao;
+      }
+    } else {
+      // É um valor decimal
+      quantidadeController.text = ingrediente.quantidade.toString();
+    }
 
     showDialog(
       context: context,
@@ -918,8 +1058,9 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                               // Verifica se a unidade selecionada permite fração
                               unidadePermiteFracao = unidadesComFracao.contains(unidadeSelecionada);
                               // Se a unidade não permitir fração, desabilita a opção
-                              if (!unidadePermiteFracao && usarFracao) {
+                              if (!unidadePermiteFracao && (usarFracao || usarMisto)) {
                                 usarFracao = false;
+                                usarMisto = false;
                                 fracaoSelecionada = null;
                               }
                             });
@@ -927,49 +1068,133 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          const Text('Usar fração:'),
-                          Switch(
-                            value: usarFracao,
-                            onChanged:
-                                unidadePermiteFracao
-                                    ? (value) {
-                                      setState(() {
-                                        usarFracao = value;
-                                        // Limpa o campo de quantidade se mudar para fração
-                                        if (value) {
-                                          quantidadeController.clear();
-                                          fracaoSelecionada =
-                                              fracoes.contains(ingrediente.fracao) ? ingrediente.fracao : '1';
-                                        } else {
-                                          fracaoSelecionada = null;
-                                          if (ingrediente.quantidade > 0) {
-                                            quantidadeController.text = ingrediente.quantidade.toString();
-                                          }
-                                        }
-                                      });
-                                    }
-                                    : null,
-                          ),
-                        ],
-                      ),
+                      if (unidadePermiteFracao) ...[
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 8.0),
+                          child: Text('Tipo de Medida:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                        ),
+                        SegmentedButton<String>(
+                          segments: const [
+                            ButtonSegment<String>(value: 'decimal', label: Text('Decimal')),
+                            ButtonSegment<String>(value: 'fracao', label: Text('Fração')),
+                            ButtonSegment<String>(value: 'misto', label: Text('Misto')),
+                          ],
+                          selected: {usarMisto ? 'misto' : (usarFracao ? 'fracao' : 'decimal')},
+                          onSelectionChanged: (Set<String> selection) {
+                            setState(() {
+                              final selected = selection.first;
+                              if (selected == 'decimal') {
+                                usarFracao = false;
+                                usarMisto = false;
+                                fracaoSelecionada = null;
+                                if (ingrediente.quantidade > 0) {
+                                  quantidadeController.text = ingrediente.quantidade.toString();
+                                }
+                              } else if (selected == 'fracao') {
+                                usarFracao = true;
+                                usarMisto = false;
+                                fracaoSelecionada = fracoes.contains(ingrediente.fracao) ? ingrediente.fracao : '1/2';
+                                quantidadeController.clear();
+                              } else if (selected == 'misto') {
+                                usarFracao = false;
+                                usarMisto = true;
+                                // Tentar usar valores existentes
+                                if (ingrediente.fracao != null && ingrediente.fracao!.contains('e')) {
+                                  final partes = ingrediente.fracao!.split(' e ');
+                                  if (partes.length == 2) {
+                                    inteiroController.text = partes[0];
+                                    fracaoSelecionada = partes[1];
+                                  } else {
+                                    inteiroController.text = '1';
+                                    fracaoSelecionada = '1/2';
+                                  }
+                                } else {
+                                  inteiroController.text = '1';
+                                  fracaoSelecionada = '1/2';
+                                }
+                                quantidadeController.clear();
+                              }
+                            });
+                          },
+                        ),
+                      ],
                       if (!unidadePermiteFracao)
                         const Padding(
                           padding: EdgeInsets.only(top: 4.0),
                           child: Text(
-                            'A opção de fração só está disponível para colher de sopa, colher de chá e xícara',
+                            'A opção de fração só está disponível para medidas como xícaras, copos e colheres',
                             style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                         ),
                       const SizedBox(height: 8),
-                      if (usarFracao)
+                      if (usarMisto)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: TextFormField(
+                                controller: inteiroController,
+                                decoration: const InputDecoration(labelText: 'Inteiro', border: OutlineInputBorder()),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 2,
+                              child: DropdownButtonFormField<String>(
+                                value: fracaoSelecionada ?? '1/2',
+                                decoration: const InputDecoration(labelText: 'Fração', border: OutlineInputBorder()),
+                                items:
+                                    fracoes.map((fracao) {
+                                      return DropdownMenuItem<String>(value: fracao, child: Text(fracao));
+                                    }).toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      fracaoSelecionada = value;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 2,
+                              child: DropdownButtonFormField<String>(
+                                value: unidadeSelecionada,
+                                decoration: const InputDecoration(labelText: 'Unidade', border: OutlineInputBorder()),
+                                items:
+                                    unidades.map((unidade) {
+                                      return DropdownMenuItem<String>(value: unidade, child: Text(unidade));
+                                    }).toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      unidadeSelecionada = value;
+                                      // Verifica se a nova unidade permite fração
+                                      unidadePermiteFracao = unidadesComFracao.contains(value);
+                                      // Se a unidade não permitir fração, desabilita a opção
+                                      if (!unidadePermiteFracao && (usarFracao || usarMisto)) {
+                                        usarFracao = false;
+                                        usarMisto = false;
+                                        fracaoSelecionada = null;
+                                      }
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        )
+                      else if (usarFracao)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               child: DropdownButtonFormField<String>(
-                                value: fracaoSelecionada ?? '1',
+                                value: fracaoSelecionada ?? '1/2',
                                 decoration: const InputDecoration(labelText: 'Fração', border: OutlineInputBorder()),
                                 items:
                                     fracoes.map((fracao) {
@@ -1000,8 +1225,9 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                                       // Verifica se a nova unidade permite fração
                                       unidadePermiteFracao = unidadesComFracao.contains(value);
                                       // Se a unidade não permitir fração, desabilita a opção
-                                      if (!unidadePermiteFracao && usarFracao) {
+                                      if (!unidadePermiteFracao && (usarFracao || usarMisto)) {
                                         usarFracao = false;
+                                        usarMisto = false;
                                         fracaoSelecionada = null;
                                       }
                                     });
@@ -1042,8 +1268,9 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                                       // Verifica se a nova unidade permite fração
                                       unidadePermiteFracao = unidadesComFracao.contains(value);
                                       // Se a unidade não permitir fração, desabilita a opção
-                                      if (!unidadePermiteFracao && usarFracao) {
+                                      if (!unidadePermiteFracao && (usarFracao || usarMisto)) {
                                         usarFracao = false;
+                                        usarMisto = false;
                                         fracaoSelecionada = null;
                                       }
                                     });
@@ -1061,6 +1288,7 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                   TextButton(
                     onPressed: () {
                       if (!usarFracao &&
+                          !usarMisto &&
                           (quantidadeController.text.isEmpty || double.tryParse(quantidadeController.text) == null)) {
                         ScaffoldMessenger.of(
                           context,
@@ -1068,14 +1296,31 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                         return;
                       }
 
+                      if (usarMisto &&
+                          (inteiroController.text.isEmpty || int.tryParse(inteiroController.text) == null)) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(const SnackBar(content: Text('Digite um valor inteiro válido.')));
+                        return;
+                      }
+
                       if (produtoSelecionado != null) {
                         double quantidade = 0;
+                        String? exibicaoFracao;
 
-                        if (!usarFracao) {
-                          quantidade = double.parse(quantidadeController.text);
-                        } else if (fracaoSelecionada != null) {
-                          // Converter a fração para um valor decimal para cálculos
+                        if (usarMisto) {
+                          // Pegar o inteiro e a fração
+                          int inteiro = int.parse(inteiroController.text);
+                          double fracaoValor = Ingrediente.converterFracao(fracaoSelecionada!);
+                          quantidade = inteiro + fracaoValor;
+                          exibicaoFracao = "$inteiro e $fracaoSelecionada";
+                        } else if (usarFracao) {
+                          // Usar apenas a fração
                           quantidade = Ingrediente.converterFracao(fracaoSelecionada!);
+                          exibicaoFracao = fracaoSelecionada;
+                        } else {
+                          // Usar apenas o valor decimal
+                          quantidade = double.parse(quantidadeController.text);
                         }
 
                         // Encontrar e substituir o ingrediente
@@ -1087,7 +1332,7 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                             produto: produtoSelecionado!,
                             quantidade: quantidade,
                             unidade: unidadeSelecionada,
-                            fracao: usarFracao ? fracaoSelecionada : null,
+                            fracao: exibicaoFracao,
                           );
 
                           Navigator.of(context).pop({'index': index, 'ingrediente': ingredienteAtualizado});

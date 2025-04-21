@@ -55,14 +55,33 @@ class Ingrediente {
     }
 
     // Conversões para medidas de colher e xícara
-    // Xícara para ml (1 xícara = 240 ml)
-    if (unidade == 'xícara' && (produto.unidade == 'ml' || produto.unidade == 'g')) {
+    // Xícara de chá para ml (1 xícara de chá = 240 ml)
+    if (unidade == 'xícara de chá' && (produto.unidade == 'ml' || produto.unidade == 'g')) {
       return quantidade * 240;
     }
-    // Xícara para L
-    if (unidade == 'xícara' && produto.unidade == 'L') {
+    // Xícara de chá para L
+    if (unidade == 'xícara de chá' && produto.unidade == 'L') {
       return quantidade * 0.24;
     }
+
+    // Xícara de café para ml (1 xícara de café = 50 ml)
+    if (unidade == 'xícara de café' && (produto.unidade == 'ml' || produto.unidade == 'g')) {
+      return quantidade * 50;
+    }
+    // Xícara de café para L
+    if (unidade == 'xícara de café' && produto.unidade == 'L') {
+      return quantidade * 0.05;
+    }
+
+    // Copo americano para ml (1 copo americano = 190 ml)
+    if (unidade == 'copo americano' && (produto.unidade == 'ml' || produto.unidade == 'g')) {
+      return quantidade * 190;
+    }
+    // Copo americano para L
+    if (unidade == 'copo americano' && produto.unidade == 'L') {
+      return quantidade * 0.19;
+    }
+
     // Colher de sopa para ml (1 colher de sopa = 15 ml)
     if (unidade == 'colher de sopa' && (produto.unidade == 'ml' || produto.unidade == 'g')) {
       return quantidade * 15;

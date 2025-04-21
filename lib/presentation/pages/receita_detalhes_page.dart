@@ -26,32 +26,12 @@ class _ReceitaDetalhesPageState extends State<ReceitaDetalhesPage> {
     _carregarReceita();
   }
 
-  // Função temporária para verificar cálculos
-  void _verificarCalculos(Receita receita) {
-    print('=== VERIFICAÇÃO DE CÁLCULOS ===');
-    print('Custo Ingredientes: ${receita.custoIngredientes}');
-    print('% Gastos: ${receita.percentualGastos * 100}%');
-    print('% Mão de Obra: ${receita.percentualMaoDeObra * 100}%');
-    print('% Total: ${receita.percentualTotal * 100}%');
-    print('Valor Gastos: ${receita.valorGastosEscondidos}');
-    print('Valor Mão de Obra: ${receita.valorMaoDeObra}');
-    print('Valor Percentuais: ${receita.valorPercentuais}');
-    print('Valor Lucro (100%): ${receita.valorLucro}');
-    print('Valor Total: ${receita.valorTotal}');
-    print('Rendimento: ${receita.rendimento} ${receita.unidadeRendimento}');
-    print('Valor por Unidade: ${receita.valorPorUnidade}');
-    print('==============================');
-  }
-
   Future<void> _carregarReceita() async {
     try {
       final controller = context.read<ReceitaController>();
       final receita = await controller.obterReceitaPorId(widget.receitaId);
 
       if (receita != null) {
-        // Adiciona chamada para verificar cálculos
-        _verificarCalculos(receita);
-
         setState(() {
           _receita = receita;
           _carregando = false;
@@ -73,7 +53,15 @@ class _ReceitaDetalhesPageState extends State<ReceitaDetalhesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_receita?.nome ?? 'Detalhes da Receita'), backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white, actions: [if (_receita != null) IconButton(icon: const Icon(Icons.edit), onPressed: () => context.push('/receitas/editar/${_receita!.id}'))]),
+      appBar: AppBar(
+        title: Text(_receita?.nome ?? 'Detalhes da Receita'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        actions: [
+          if (_receita != null)
+            IconButton(icon: const Icon(Icons.edit), onPressed: () => context.push('/receitas/editar/${_receita!.id}')),
+        ],
+      ),
       body:
           _carregando
               ? const Center(child: CircularProgressIndicator())
@@ -94,15 +82,30 @@ class _ReceitaDetalhesPageState extends State<ReceitaDetalhesPage> {
                           children: [
                             Text(_receita!.nome, style: Theme.of(context).textTheme.titleLarge),
                             const SizedBox(height: 8),
-                            Text('Rendimento: ${_receita!.rendimento} ${_receita!.unidadeRendimento}', style: Theme.of(context).textTheme.bodyMedium),
+                            Text(
+                              'Rendimento: ${_receita!.rendimento} ${_receita!.unidadeRendimento}',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
                             const SizedBox(height: 8),
-                            Row(children: [Icon(Icons.update, size: 16, color: Colors.grey[600]), const SizedBox(width: 4), Text('Última atualização: ${DateFormat('dd/MM/yyyy HH:mm').format(_receita!.dataUltimaAtualizacao)}', style: TextStyle(fontSize: 12, color: Colors.grey[600]))]),
+                            Row(
+                              children: [
+                                Icon(Icons.update, size: 16, color: Colors.grey[600]),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Última atualização: ${DateFormat('dd/MM/yyyy HH:mm').format(_receita!.dataUltimaAtualizacao)}',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Text('Ingredientes', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(
+                      'Ingredientes',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 8),
                     Card(
                       child: Padding(
@@ -114,13 +117,20 @@ class _ReceitaDetalhesPageState extends State<ReceitaDetalhesPage> {
                           separatorBuilder: (_, __) => const Divider(),
                           itemBuilder: (context, index) {
                             final ingrediente = _receita!.ingredientes[index];
-                            return ListTile(title: Text(ingrediente.produto.nome), subtitle: Text('${ingrediente.quantidade} ${ingrediente.unidade}'), trailing: Text(MoneyFormatter.formatReal(ingrediente.custoTotal)));
+                            return ListTile(
+                              title: Text(ingrediente.produto.nome),
+                              subtitle: Text('${ingrediente.quantidade} ${ingrediente.unidade}'),
+                              trailing: Text(MoneyFormatter.formatReal(ingrediente.custoTotal)),
+                            );
                           },
                         ),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Text('Precificação', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(
+                      'Precificação',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 8),
                     _buildCardPrecificacao(),
                   ],
@@ -139,10 +149,60 @@ class _ReceitaDetalhesPageState extends State<ReceitaDetalhesPage> {
     final valorTotal = _receita!.valorTotal;
     final valorPorUnidade = _receita!.valorPorUnidade;
 
-    return Card(child: Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildItemPrecificacao('Custo dos Ingredientes', MoneyFormatter.formatReal(custoIngredientes)), const Divider(), _buildItemPrecificacao('Gastos "escondidos" (${NumberFormatter.formatPercent(_receita!.percentualGastos)})', MoneyFormatter.formatReal(valorGastosEscondidos)), const Divider(), _buildItemPrecificacao('Mão de obra (${NumberFormatter.formatPercent(_receita!.percentualMaoDeObra)})', MoneyFormatter.formatReal(valorMaoDeObra)), const Divider(), _buildItemPrecificacao('Total percentuais (${NumberFormatter.formatPercent(_receita!.percentualTotal)})', MoneyFormatter.formatReal(_receita!.valorPercentuais)), const Divider(), _buildItemPrecificacao('Lucro (100%)', MoneyFormatter.formatReal(valorLucro)), const Divider(), _buildItemPrecificacao('Valor Total', MoneyFormatter.formatReal(valorTotal), destaque: true), const Divider(), _buildItemPrecificacao('Valor por ${_receita!.unidadeRendimento}', MoneyFormatter.formatReal(valorPorUnidade), destaque: true)])));
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildItemPrecificacao('Custo dos Ingredientes', MoneyFormatter.formatReal(custoIngredientes)),
+            const Divider(),
+            _buildItemPrecificacao(
+              'Gastos "escondidos" (${NumberFormatter.formatPercent(_receita!.percentualGastos)})',
+              MoneyFormatter.formatReal(valorGastosEscondidos),
+            ),
+            const Divider(),
+            _buildItemPrecificacao(
+              'Mão de obra (${NumberFormatter.formatPercent(_receita!.percentualMaoDeObra)})',
+              MoneyFormatter.formatReal(valorMaoDeObra),
+            ),
+            const Divider(),
+            _buildItemPrecificacao(
+              'Total percentuais (${NumberFormatter.formatPercent(_receita!.percentualTotal)})',
+              MoneyFormatter.formatReal(_receita!.valorPercentuais),
+            ),
+            const Divider(),
+            _buildItemPrecificacao('Lucro (100%)', MoneyFormatter.formatReal(valorLucro)),
+            const Divider(),
+            _buildItemPrecificacao('Valor Total', MoneyFormatter.formatReal(valorTotal), destaque: true),
+            const Divider(),
+            _buildItemPrecificacao(
+              'Valor por ${_receita!.unidadeRendimento}',
+              MoneyFormatter.formatReal(valorPorUnidade),
+              destaque: true,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildItemPrecificacao(String label, String valor, {bool destaque = false}) {
-    return Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label, style: TextStyle(fontWeight: destaque ? FontWeight.bold : FontWeight.normal, fontSize: destaque ? 16 : 14)), Text(valor, style: TextStyle(fontWeight: destaque ? FontWeight.bold : FontWeight.normal, fontSize: destaque ? 16 : 14))]));
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontWeight: destaque ? FontWeight.bold : FontWeight.normal, fontSize: destaque ? 16 : 14),
+          ),
+          Text(
+            valor,
+            style: TextStyle(fontWeight: destaque ? FontWeight.bold : FontWeight.normal, fontSize: destaque ? 16 : 14),
+          ),
+        ],
+      ),
+    );
   }
 }

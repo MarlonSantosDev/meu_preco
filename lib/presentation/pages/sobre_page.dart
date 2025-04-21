@@ -6,14 +6,28 @@ class SobrePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sobre o App'), backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white),
+      appBar: AppBar(
+        title: const Text('Sobre o App'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Informações do aplicativo
-            Center(child: Column(children: [Image.asset('assets/images/imagem_home.png', height: 100), const SizedBox(height: 16), Text('Meu Preço', style: Theme.of(context).textTheme.headlineMedium), const Text('Versão 1.0.0', style: TextStyle(fontSize: 16, color: Colors.grey)), const SizedBox(height: 24)])),
+            Center(
+              child: Column(
+                children: [
+                  Image.asset('assets/images/imagem_home.png', height: 100),
+                  const SizedBox(height: 16),
+                  Text('Meu Preço', style: Theme.of(context).textTheme.headlineMedium),
+                  const Text('Versão 1.0.0', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
 
             // Descrição do app
             const _SectionTitle(title: 'Sobre o aplicativo'),
@@ -82,7 +96,10 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(padding: const EdgeInsets.only(bottom: 8.0), child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)));
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+    );
   }
 }
 
@@ -108,15 +125,20 @@ class _MedidasTable extends StatelessWidget {
         columnSpacing: 20,
         columns: const [DataColumn(label: Text('Medida')), DataColumn(label: Text('Equivalência'))],
         rows: const [
-          DataRow(cells: [DataCell(Text('1 xícara (chá)')), DataCell(Text('240ml'))]),
-          DataRow(cells: [DataCell(Text('1 xícara (café)')), DataCell(Text('50ml'))]),
+          DataRow(cells: [DataCell(Text('1 copo americano')), DataCell(Text('190ml'))]),
+          DataRow(cells: [DataCell(Text('1/2 copo americano')), DataCell(Text('95ml'))]),
+
           DataRow(cells: [DataCell(Text('1 colher (sopa)')), DataCell(Text('15ml'))]),
           DataRow(cells: [DataCell(Text('1 colher (chá)')), DataCell(Text('5ml'))]),
-          DataRow(cells: [DataCell(Text('1 colher (café)')), DataCell(Text('2,5ml'))]),
-          DataRow(cells: [DataCell(Text('1/4 xícara')), DataCell(Text('60ml'))]),
-          DataRow(cells: [DataCell(Text('1/3 xícara')), DataCell(Text('80ml'))]),
-          DataRow(cells: [DataCell(Text('1/2 xícara')), DataCell(Text('120ml'))]),
-          DataRow(cells: [DataCell(Text('1 copo americano')), DataCell(Text('200ml'))]),
+
+          DataRow(cells: [DataCell(Text('1 xícara de chá')), DataCell(Text('240ml'))]),
+          DataRow(cells: [DataCell(Text('1 e 1/2 xícara de chá')), DataCell(Text('360ml'))]),
+          DataRow(cells: [DataCell(Text('1/2 xícara de chá')), DataCell(Text('120ml'))]),
+          DataRow(cells: [DataCell(Text('1/3 xícara de chá')), DataCell(Text('80ml'))]),
+          DataRow(cells: [DataCell(Text('1/4 xícara de chá')), DataCell(Text('60ml'))]),
+
+          DataRow(cells: [DataCell(Text('1 xícara de café')), DataCell(Text('50ml'))]),
+          DataRow(cells: [DataCell(Text('1/2 xícara de café')), DataCell(Text('25ml'))]),
         ],
       ),
     );

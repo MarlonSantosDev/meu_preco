@@ -1,27 +1,38 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
-/// Classe para substituir temporariamente o pacote image_picker
-/// até que o problema de importação seja resolvido
+/// Classe auxiliar para trabalhar com o pacote image_picker
 class ImagePickerHelper {
-  // Define constantes para substituir o enum ImageSource
+  // Define constantes para facilitar o uso
   static const int gallery = 0;
   static const int camera = 1;
 
   /// Método para selecionar uma imagem da galeria ou câmera
   /// source: 0 para galeria, 1 para câmera
   static Future<ImageFile?> pickImage({required int source}) async {
-    // Por enquanto, retorna null pois não podemos acessar a câmera/galeria
-    // Como solução temporária, pode-se criar uma implementação mais simples
-    // ou retornar um caminho de imagem fixa para testes
-    return ImageFile('/caminho/para/imagem_placeholder.jpg');
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
+        source: source == gallery ? ImageSource.gallery : ImageSource.camera,
+        imageQuality: 80, // Qualidade da imagem (0-100)
+      );
+
+      if (pickedFile != null) {
+        return ImageFile(pickedFile.path);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Erro ao selecionar imagem: $e');
+      return null;
+    }
   }
 }
 
-/// Classe para substituir XFile
+/// Classe que encapsula o XFile para manter a compatibilidade
 class ImageFile {
   final String path;
 
