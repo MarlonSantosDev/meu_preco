@@ -19,7 +19,10 @@ class Produto {
   @HiveField(4)
   String unidade; // kg, L, g, ml, etc.
 
-  Produto({required this.id, required this.nome, required this.preco, required this.quantidade, required this.unidade});
+  @HiveField(5)
+  String? imagemUrl; // Campo para armazenar o path ou url da imagem
+
+  Produto({required this.id, required this.nome, required this.preco, required this.quantidade, required this.unidade, this.imagemUrl});
 
   double get precoUnitario => preco / quantidade;
 

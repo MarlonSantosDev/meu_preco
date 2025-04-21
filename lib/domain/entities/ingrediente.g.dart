@@ -21,13 +21,14 @@ class IngredienteAdapter extends TypeAdapter<Ingrediente> {
       produto: fields[1] as Produto,
       quantidade: fields[2] as double,
       unidade: fields[3] as String,
+      fracao: fields[4] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Ingrediente obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class IngredienteAdapter extends TypeAdapter<Ingrediente> {
       ..writeByte(2)
       ..write(obj.quantidade)
       ..writeByte(3)
-      ..write(obj.unidade);
+      ..write(obj.unidade)
+      ..writeByte(4)
+      ..write(obj.fracao);
   }
 
   @override

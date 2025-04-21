@@ -4,6 +4,7 @@ import 'package:meu_preco/core/utils/formatters.dart';
 import 'package:meu_preco/domain/entities/receita.dart';
 import 'package:meu_preco/presentation/controllers/receita_controller.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class ReceitaDetalhesPage extends StatefulWidget {
   final String receitaId;
@@ -65,7 +66,21 @@ class _ReceitaDetalhesPageState extends State<ReceitaDetalhesPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Card(child: Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_receita!.nome, style: Theme.of(context).textTheme.titleLarge), const SizedBox(height: 8), Text('Rendimento: ${_receita!.rendimento} ${_receita!.unidadeRendimento}', style: Theme.of(context).textTheme.bodyMedium)]))),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_receita!.nome, style: Theme.of(context).textTheme.titleLarge),
+                            const SizedBox(height: 8),
+                            Text('Rendimento: ${_receita!.rendimento} ${_receita!.unidadeRendimento}', style: Theme.of(context).textTheme.bodyMedium),
+                            const SizedBox(height: 8),
+                            Row(children: [Icon(Icons.update, size: 16, color: Colors.grey[600]), const SizedBox(width: 4), Text('Última atualização: ${DateFormat('dd/MM/yyyy HH:mm').format(_receita!.dataUltimaAtualizacao)}', style: TextStyle(fontSize: 12, color: Colors.grey[600]))]),
+                          ],
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 24),
                     Text('Ingredientes', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
@@ -102,10 +117,10 @@ class _ReceitaDetalhesPageState extends State<ReceitaDetalhesPage> {
     final valorTotal = _receita!.valorTotal;
     final valorPorUnidade = _receita!.valorPorUnidade;
 
-    return Card(child: Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildItemPrecificacao('Custo dos Ingredientes', MoneyFormatter.formatReal(custoIngredientes)), const Divider(), _buildItemPrecificacao('Gastos Escondidos (${NumberFormatter.formatPercent(_receita!.percentualGastos)})', MoneyFormatter.formatReal(custoIngredientes * _receita!.percentualGastos)), const Divider(), _buildItemPrecificacao('Subtotal', MoneyFormatter.formatReal(custoComGastos)), const Divider(), _buildItemPrecificacao('Mão de Obra (${NumberFormatter.formatPercent(_receita!.percentualMaoDeObra)})', MoneyFormatter.formatReal(valorTotal - custoComGastos)), const Divider(), _buildItemPrecificacao('Valor Total da Receita', MoneyFormatter.formatReal(valorTotal), destacado: true), const Divider(), _buildItemPrecificacao('Valor por ${_receita!.unidadeRendimento}', MoneyFormatter.formatReal(valorPorUnidade), destacado: true)])));
+    return Card(child: Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildItemPrecificacao('Custo dos Ingredientes', MoneyFormatter.formatReal(custoIngredientes)), const Divider(), _buildItemPrecificacao('Gastos "escondidos" (${NumberFormatter.formatPercent(_receita!.percentualGastos)})', MoneyFormatter.formatReal(custoIngredientes * _receita!.percentualGastos)), const Divider(), _buildItemPrecificacao('Custo com gastos', MoneyFormatter.formatReal(custoComGastos)), const Divider(), _buildItemPrecificacao('Mão de obra (${NumberFormatter.formatPercent(_receita!.percentualMaoDeObra)})', MoneyFormatter.formatReal(valorTotal - custoComGastos)), const Divider(), _buildItemPrecificacao('Valor Total', MoneyFormatter.formatReal(valorTotal), destaque: true), const Divider(), _buildItemPrecificacao('Valor por ${_receita!.unidadeRendimento}', MoneyFormatter.formatReal(valorPorUnidade), destaque: true)])));
   }
 
-  Widget _buildItemPrecificacao(String label, String valor, {bool destacado = false}) {
-    return Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label, style: TextStyle(fontWeight: destacado ? FontWeight.bold : FontWeight.normal, fontSize: destacado ? 16 : 14)), Text(valor, style: TextStyle(fontWeight: destacado ? FontWeight.bold : FontWeight.normal, fontSize: destacado ? 16 : 14))]));
+  Widget _buildItemPrecificacao(String label, String valor, {bool destaque = false}) {
+    return Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label, style: TextStyle(fontWeight: destaque ? FontWeight.bold : FontWeight.normal, fontSize: destaque ? 16 : 14)), Text(valor, style: TextStyle(fontWeight: destaque ? FontWeight.bold : FontWeight.normal, fontSize: destaque ? 16 : 14))]));
   }
 }

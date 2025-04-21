@@ -59,13 +59,13 @@ class ReceitaController extends ChangeNotifier {
     }
   }
 
-  Future<void> salvarReceita({required String nome, required List<Ingrediente> ingredientes, required double percentualGastos, required double percentualMaoDeObra, required double rendimento, required String unidadeRendimento}) async {
+  Future<void> salvarReceita({required String nome, required List<Ingrediente> ingredientes, required double percentualGastos, required double percentualMaoDeObra, required double rendimento, required String unidadeRendimento, String? imagemUrl}) async {
     _carregando = true;
     _erro = null;
     notifyListeners();
 
     try {
-      final receita = Receita(id: IdGenerator.generate(), nome: nome, ingredientes: ingredientes, percentualGastos: percentualGastos, percentualMaoDeObra: percentualMaoDeObra, rendimento: rendimento, unidadeRendimento: unidadeRendimento);
+      final receita = Receita(id: IdGenerator.generate(), nome: nome, ingredientes: ingredientes, percentualGastos: percentualGastos, percentualMaoDeObra: percentualMaoDeObra, rendimento: rendimento, unidadeRendimento: unidadeRendimento, imagemUrl: imagemUrl, dataUltimaAtualizacao: DateTime.now());
 
       await _salvarReceitaUseCase.executar(receita);
       await carregarReceitas();
@@ -82,7 +82,10 @@ class ReceitaController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _atualizarReceitaUseCase.executar(receita);
+      // Criar uma nova receita com a data de atualização atual
+      final receitaAtualizada = Receita(id: receita.id, nome: receita.nome, ingredientes: receita.ingredientes, percentualGastos: receita.percentualGastos, percentualMaoDeObra: receita.percentualMaoDeObra, rendimento: receita.rendimento, unidadeRendimento: receita.unidadeRendimento, imagemUrl: receita.imagemUrl, dataUltimaAtualizacao: DateTime.now());
+
+      await _atualizarReceitaUseCase.executar(receitaAtualizada);
       await carregarReceitas();
     } catch (e) {
       _erro = 'Erro ao atualizar receita: ${e.toString()}';
@@ -116,13 +119,13 @@ class ReceitaController extends ChangeNotifier {
     }
   }
 
-  Future<void> adicionarIngrediente(Receita receita, Produto produto, double quantidade, String unidade) async {
-    final ingrediente = Ingrediente(id: IdGenerator.generate(), produto: produto, quantidade: quantidade, unidade: unidade);
+  Future<void> adicionarIngrediente(Receita receita, Produto produto, double quantidade, String unidade, {String? fracao}) async {
+    final ingrediente = Ingrediente(id: IdGenerator.generate(), produto: produto, quantidade: quantidade, unidade: unidade, fracao: fracao);
 
     final novaLista = List<Ingrediente>.from(receita.ingredientes);
     novaLista.add(ingrediente);
 
-    final receitaAtualizada = Receita(id: receita.id, nome: receita.nome, ingredientes: novaLista, percentualGastos: receita.percentualGastos, percentualMaoDeObra: receita.percentualMaoDeObra, rendimento: receita.rendimento, unidadeRendimento: receita.unidadeRendimento);
+    final receitaAtualizada = Receita(id: receita.id, nome: receita.nome, ingredientes: novaLista, percentualGastos: receita.percentualGastos, percentualMaoDeObra: receita.percentualMaoDeObra, rendimento: receita.rendimento, unidadeRendimento: receita.unidadeRendimento, imagemUrl: receita.imagemUrl);
 
     await atualizarReceita(receitaAtualizada);
   }
@@ -130,8 +133,21 @@ class ReceitaController extends ChangeNotifier {
   Future<void> removerIngrediente(Receita receita, String ingredienteId) async {
     final novaLista = receita.ingredientes.where((ingrediente) => ingrediente.id != ingredienteId).toList();
 
-    final receitaAtualizada = Receita(id: receita.id, nome: receita.nome, ingredientes: novaLista, percentualGastos: receita.percentualGastos, percentualMaoDeObra: receita.percentualMaoDeObra, rendimento: receita.rendimento, unidadeRendimento: receita.unidadeRendimento);
+    final receitaAtualizada = Receita(id: receita.id, nome: receita.nome, ingredientes: novaLista, percentualGastos: receita.percentualGastos, percentualMaoDeObra: receita.percentualMaoDeObra, rendimento: receita.rendimento, unidadeRendimento: receita.unidadeRendimento, imagemUrl: receita.imagemUrl);
 
     await atualizarReceita(receitaAtualizada);
+  }
+
+  Future<void> editarIngrediente(Receita receita, String ingredienteId, Produto produto, double quantidade, String unidade, {String? fracao}) async {
+    final novaLista = List<Ingrediente>.from(receita.ingredientes);
+    final index = novaLista.indexWhere((ingrediente) => ingrediente.id == ingredienteId);
+
+    if (index != -1) {
+      novaLista[index] = Ingrediente(id: ingredienteId, produto: produto, quantidade: quantidade, unidade: unidade, fracao: fracao);
+
+      final receitaAtualizada = Receita(id: receita.id, nome: receita.nome, ingredientes: novaLista, percentualGastos: receita.percentualGastos, percentualMaoDeObra: receita.percentualMaoDeObra, rendimento: receita.rendimento, unidadeRendimento: receita.unidadeRendimento, imagemUrl: receita.imagemUrl);
+
+      await atualizarReceita(receitaAtualizada);
+    }
   }
 }

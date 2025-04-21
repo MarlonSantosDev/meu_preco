@@ -26,6 +26,12 @@ class Receita {
   @HiveField(6)
   String unidadeRendimento; // unidade, kg, L, etc.
 
+  @HiveField(7)
+  String? imagemUrl; // Campo para armazenar o path ou url da imagem
+
+  @HiveField(8)
+  DateTime dataUltimaAtualizacao;
+
   Receita({
     required this.id,
     required this.nome,
@@ -34,7 +40,9 @@ class Receita {
     this.percentualMaoDeObra = 0.2, // 20% padrão
     required this.rendimento,
     required this.unidadeRendimento,
-  });
+    this.imagemUrl,
+    DateTime? dataUltimaAtualizacao,
+  }) : this.dataUltimaAtualizacao = dataUltimaAtualizacao ?? DateTime.now();
 
   // Custo total dos ingredientes
   double get custoIngredientes {

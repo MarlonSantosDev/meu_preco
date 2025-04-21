@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
 
         // Controllers
         ChangeNotifierProxyProvider5<ObterTodosProdutosUseCase, ObterProdutoPorIdUseCase, SalvarProdutoUseCase, AtualizarProdutoUseCase, RemoverProdutoUseCase, ProdutoController>(
-          create: (_) => ProdutoController(obterTodosProdutosUseCase: ObterTodosProdutosUseCase(ProdutoRepositoryImpl(HiveDataSource())), obterProdutoPorIdUseCase: ObterProdutoPorIdUseCase(ProdutoRepositoryImpl(HiveDataSource())), salvarProdutoUseCase: SalvarProdutoUseCase(ProdutoRepositoryImpl(HiveDataSource())), atualizarProdutoUseCase: AtualizarProdutoUseCase(ProdutoRepositoryImpl(HiveDataSource())), removerProdutoUseCase: RemoverProdutoUseCase(ProdutoRepositoryImpl(HiveDataSource()))),
+          create: (_) => ProdutoController(obterTodosProdutosUseCase: ObterTodosProdutosUseCase(ProdutoRepositoryImpl(HiveDataSource())), obterProdutoPorIdUseCase: ObterProdutoPorIdUseCase(ProdutoRepositoryImpl(HiveDataSource())), salvarProdutoUseCase: SalvarProdutoUseCase(ProdutoRepositoryImpl(HiveDataSource())), atualizarProdutoUseCase: AtualizarProdutoUseCase(ProdutoRepositoryImpl(HiveDataSource())), removerProdutoUseCase: RemoverProdutoUseCase(ProdutoRepositoryImpl(HiveDataSource())), obterTodasReceitasUseCase: ObterTodasReceitasUseCase(ReceitaRepositoryImpl(HiveDataSource())), atualizarReceitaUseCase: AtualizarReceitaUseCase(ReceitaRepositoryImpl(HiveDataSource()))),
           update: (_, obterTodos, obterPorId, salvar, atualizar, remover, previous) {
             previous!
               ..obterTodosProdutosUseCase = obterTodos
@@ -57,6 +57,18 @@ class MyApp extends StatelessWidget {
               ..atualizarProdutoUseCase = atualizar
               ..removerProdutoUseCase = remover;
             return previous;
+          },
+        ),
+
+        // Injetando dependências de receitas no ProdutoController
+        ProxyProvider2<ObterTodasReceitasUseCase, AtualizarReceitaUseCase, ProdutoController>(
+          update: (_, obterTodasReceitas, atualizarReceita, previous) {
+            if (previous != null) {
+              previous
+                ..obterTodasReceitasUseCase = obterTodasReceitas
+                ..atualizarReceitaUseCase = atualizarReceita;
+            }
+            return previous!;
           },
         ),
 

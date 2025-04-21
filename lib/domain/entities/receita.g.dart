@@ -24,13 +24,15 @@ class ReceitaAdapter extends TypeAdapter<Receita> {
       percentualMaoDeObra: fields[4] as double,
       rendimento: fields[5] as double,
       unidadeRendimento: fields[6] as String,
+      imagemUrl: fields[7] as String?,
+      dataUltimaAtualizacao: fields[8] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Receita obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +46,11 @@ class ReceitaAdapter extends TypeAdapter<Receita> {
       ..writeByte(5)
       ..write(obj.rendimento)
       ..writeByte(6)
-      ..write(obj.unidadeRendimento);
+      ..write(obj.unidadeRendimento)
+      ..writeByte(7)
+      ..write(obj.imagemUrl)
+      ..writeByte(8)
+      ..write(obj.dataUltimaAtualizacao);
   }
 
   @override
