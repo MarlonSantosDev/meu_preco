@@ -1,0 +1,32 @@
+Faça um app de precificação de produtos.
+Seja um desenvolvedor experiente em flutter e dart.
+Faça com padrão de projeto MVC.
+Faça com arquitetura clean architecture.
+Faça o que for necessário para resolver o problema.
+Faça o código mais simples possível.
+Faça um layout elegante e simples.
+Faça com layout bem intuitivo e fácil de usar.
+As receitas e produtos cadastrados devem ser salvos no dispositivo do usuário.
+O App será feito em português do Brasil.
+A moeda utilizada será o Real.
+O app será feito para Android
+O app tem ter o seguintes requisitos:
+ - Uma tela de cadastrar produto
+    - Informa o preço e quantidade de compras
+        Exemplo: 1kg de arroz por R$ 10,00
+                1L de leite por R$ 5,00
+                250mg de açucar por R$ 10,00
+ - Uma tela para criar um receita
+    - Na tela de criar receita deve selecionar o produto e a quantidade utilizada na receita
+        Exemplo: 100mg de arroz
+                 Uma Xicara de 200ml de leite
+                 Uma colher de sopa de açucar
+    - Lista todos os produtos e quantidade utilizada na receita nessa receita
+    - Deixa como padrão 20% de gastro inbutido (Usuario pode alterar)
+    - Deixa como padrão 20% de mão de obra (Usuario pode alterar)
+    - No final tem de informar de forma bem clara o preço de venda do produto. Unidade, kg, ml, etc.
+    - Quero o preço bem detalhado, custo da receita, preço de venda, lucro, margem, quero a composição do preço de completo.
+    - Toda a precificação deve ser feita de forma automática.
+Ao alterar o preço do produto, a receita deve ser recalculada e atualizada.
+Veja o exemplo de como deve ser a precificação em anexo. @modelo.jpg
+Faça testes para verificar se o app está funcionando corretamente.
