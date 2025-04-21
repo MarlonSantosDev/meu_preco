@@ -1,7 +1,5 @@
 import 'package:hive/hive.dart';
 import 'package:meu_preco/core/hive_init.dart';
-import 'package:meu_preco/data/models/produto_dto.dart';
-import 'package:meu_preco/data/models/receita_dto.dart';
 import 'package:meu_preco/domain/entities/produto.dart';
 import 'package:meu_preco/domain/entities/receita.dart';
 

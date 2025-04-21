@@ -56,46 +56,107 @@ class Ingrediente {
 
     // Conversões para medidas de colher e xícara
     // Xícara de chá para ml (1 xícara de chá = 240 ml)
-    if (unidade == 'xícara de chá' && (produto.unidade == 'ml' || produto.unidade == 'g')) {
+    if (unidade == 'xícara de chá' && produto.unidade == 'ml') {
       return quantidade * 240;
+    }
+    // Xícara de chá para g (1 xícara de chá = 240 g)
+    if (unidade == 'xícara de chá' && produto.unidade == 'g') {
+      return quantidade * 240;
+    }
+    // Xícara de chá para mg (1 xícara de chá = 240 g = 240000 mg)
+    if (unidade == 'xícara de chá' && produto.unidade == 'mg') {
+      return quantidade * 240000;
     }
     // Xícara de chá para L
     if (unidade == 'xícara de chá' && produto.unidade == 'L') {
       return quantidade * 0.24;
     }
+    // Xícara de chá para kg
+    if (unidade == 'xícara de chá' && produto.unidade == 'kg') {
+      return quantidade * 0.24;
+    }
 
     // Xícara de café para ml (1 xícara de café = 50 ml)
-    if (unidade == 'xícara de café' && (produto.unidade == 'ml' || produto.unidade == 'g')) {
+    if (unidade == 'xícara de café' && produto.unidade == 'ml') {
       return quantidade * 50;
+    }
+    // Xícara de café para g (1 xícara de café = 50 g)
+    if (unidade == 'xícara de café' && produto.unidade == 'g') {
+      return quantidade * 50;
+    }
+    // Xícara de café para mg (1 xícara de café = 50 g = 50000 mg)
+    if (unidade == 'xícara de café' && produto.unidade == 'mg') {
+      return quantidade * 50000;
     }
     // Xícara de café para L
     if (unidade == 'xícara de café' && produto.unidade == 'L') {
       return quantidade * 0.05;
     }
+    // Xícara de café para kg
+    if (unidade == 'xícara de café' && produto.unidade == 'kg') {
+      return quantidade * 0.05;
+    }
 
     // Copo americano para ml (1 copo americano = 190 ml)
-    if (unidade == 'copo americano' && (produto.unidade == 'ml' || produto.unidade == 'g')) {
+    if (unidade == 'copo americano' && produto.unidade == 'ml') {
       return quantidade * 190;
+    }
+    // Copo americano para g (1 copo americano = 190 g)
+    if (unidade == 'copo americano' && produto.unidade == 'g') {
+      return quantidade * 190;
+    }
+    // Copo americano para mg (1 copo americano = 190 g = 190000 mg)
+    if (unidade == 'copo americano' && produto.unidade == 'mg') {
+      return quantidade * 190000;
     }
     // Copo americano para L
     if (unidade == 'copo americano' && produto.unidade == 'L') {
       return quantidade * 0.19;
     }
+    // Copo americano para kg
+    if (unidade == 'copo americano' && produto.unidade == 'kg') {
+      return quantidade * 0.19;
+    }
 
     // Colher de sopa para ml (1 colher de sopa = 15 ml)
-    if (unidade == 'colher de sopa' && (produto.unidade == 'ml' || produto.unidade == 'g')) {
+    if (unidade == 'colher de sopa' && produto.unidade == 'ml') {
+      return quantidade * 15;
+    }
+    // Colher de sopa para mg (1 colher de sopa = 15 g)
+    if (unidade == 'colher de sopa' && produto.unidade == 'mg') {
+      return quantidade * 15000;
+    }
+    // Colher de sopa para g (1 colher de sopa = 15 g)
+    if (unidade == 'colher de sopa' && produto.unidade == 'g') {
       return quantidade * 15;
     }
     // Colher de sopa para L
     if (unidade == 'colher de sopa' && produto.unidade == 'L') {
       return quantidade * 0.015;
     }
+    // Colher de sopa para kg
+    if (unidade == 'colher de sopa' && produto.unidade == 'kg') {
+      return quantidade * 0.015;
+    }
+
     // Colher de chá para ml (1 colher de chá = 5 ml)
-    if (unidade == 'colher de chá' && (produto.unidade == 'ml' || produto.unidade == 'g')) {
+    if (unidade == 'colher de chá' && produto.unidade == 'ml') {
+      return quantidade * 5;
+    }
+    // Colher de chá para mg (1 colher de chá = 5 g)
+    if (unidade == 'colher de chá' && produto.unidade == 'mg') {
+      return quantidade * 5000;
+    }
+    // Colher de chá para g (1 colher de chá = 5 g)
+    if (unidade == 'colher de chá' && produto.unidade == 'g') {
       return quantidade * 5;
     }
     // Colher de chá para L
     if (unidade == 'colher de chá' && produto.unidade == 'L') {
+      return quantidade * 0.005;
+    }
+    // Colher de chá para kg
+    if (unidade == 'colher de chá' && produto.unidade == 'kg') {
       return quantidade * 0.005;
     }
 

@@ -15,7 +15,9 @@ import 'package:meu_preco/domain/entities/receita.dart';
 import 'package:meu_preco/presentation/controllers/produto_controller.dart';
 import 'package:meu_preco/presentation/controllers/receita_controller.dart';
 import 'package:provider/provider.dart';
-// import 'package:image_picker/image_picker.dart'; // Temporariamente comentado
+import 'package:meu_preco/presentation/widgets/image_selection_dialog.dart';
+import 'package:meu_preco/presentation/widgets/image_options_bottom_sheet.dart';
+import 'package:meu_preco/presentation/widgets/image_selector.dart';
 
 class ReceitaFormPage extends StatefulWidget {
   final String? receitaId;
@@ -47,7 +49,6 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
   List<Ingrediente> _ingredientes = [];
   final UnsplashService _unsplashService = UnsplashService();
   List<String> _imagensEncontradas = [];
-  // Não precisamos de uma instância do helper pois usamos métodos estáticos
 
   @override
   void initState() {
@@ -163,7 +164,24 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
     });
 
     try {
-      final imagens = await _unsplashService.buscarImagens('${_nomeController.text} food');
+      // Otimização da query para melhorar relevância das imagens
+      String query = '${_nomeController.text} receita prato comida';
+
+      // Adiciona termos específicos com base na unidade de rendimento
+      if (_unidadeRendimento == 'unidade') {
+        query += ' porção';
+      } else if (_unidadeRendimento == 'kg' || _unidadeRendimento == 'g') {
+        query += ' prato principal';
+      } else if (_unidadeRendimento == 'L' || _unidadeRendimento == 'ml') {
+        query += ' sopa líquido';
+      }
+
+      final imagens = await _unsplashService.buscarImagens(
+        query,
+        perPage: 30,
+        category: 'food',
+        orientation: 'landscape',
+      );
 
       setState(() {
         _imagensEncontradas = imagens;
@@ -211,135 +229,28 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
   }
 
   void _mostrarDialogoSelecaoImagem(List<String> imagens) {
-    showDialog(
+    mostrarDialogoSelecaoImagem(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Selecione uma imagem'),
-            content: SizedBox(
-              width: double.maxFinite,
-              height: 300,
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemCount: imagens.length,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      _salvarImagemDaWeb(imagens[index]);
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        imagens[index],
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.error)),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value:
-                                  loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                      : null,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar'))],
-          ),
+      imagens: imagens,
+      title: 'Selecione uma imagem para a receita',
+      onImageSelected: _salvarImagemDaWeb,
     );
   }
 
   void _mostrarOpcoesImagem() {
-    showModalBottomSheet(
+    mostrarOpcoesImagem(
       context: context,
-      builder:
-          (context) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.photo_library),
-                  title: const Text('Galeria'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _selecionarImagem();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.camera_alt),
-                  title: const Text('Câmera'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _tirarFoto();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.search),
-                  title: const Text('Buscar online'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _buscarImagens();
-                  },
-                ),
-              ],
-            ),
-          ),
+      onGalleryTap: _selecionarImagem,
+      onCameraTap: _tirarFoto,
+      onSearchTap: _buscarImagens,
     );
   }
 
   Widget _buildImageSelector() {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: _mostrarOpcoesImagem,
-          child:
-              _imagemUrl != null
-                  ? Container(
-                    height: 200,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      image: DecorationImage(
-                        image:
-                            _imagemUrl!.startsWith('http')
-                                ? NetworkImage(_imagemUrl!) as ImageProvider
-                                : FileImage(File(_imagemUrl!)) as ImageProvider,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  )
-                  : Container(
-                    height: 200,
-                    width: double.infinity,
-                    decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.image, size: 64, color: Colors.grey),
-                        SizedBox(height: 8),
-                        Text('Toque para adicionar imagem', style: TextStyle(color: Colors.grey)),
-                      ],
-                    ),
-                  ),
-        ),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-          onPressed: _mostrarOpcoesImagem,
-          icon: const Icon(Icons.add_photo_alternate),
-          label: const Text('Adicionar ou alterar imagem'),
-        ),
-      ],
+    return ImageSelector(
+      imageUrl: _imagemUrl,
+      onTap: _mostrarOpcoesImagem,
+      placeholder: 'Toque para adicionar imagem da receita',
     );
   }
 
@@ -382,6 +293,22 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                           if (value == null || value.isEmpty) {
                             return 'Digite o nome da receita';
                           }
+
+                          // Verificar se já existe uma receita com este nome
+                          final controller = context.read<ReceitaController>();
+                          if (controller.existeReceitaComNome(
+                            value,
+                            idIgnorar: _isEdicao ? _receitaOriginal?.id : null,
+                          )) {
+                            return 'Já existe uma receita com este nome';
+                          }
+
+                          // Verificar se o nome não está sendo usado por um produto
+                          final produtoController = context.read<ProdutoController>();
+                          if (produtoController.existeProdutoComNome(value)) {
+                            return 'Este nome já está sendo usado por um produto';
+                          }
+
                           return null;
                         },
                       ),

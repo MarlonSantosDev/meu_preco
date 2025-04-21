@@ -5,13 +5,14 @@ import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
 import 'package:meu_preco/core/utils/formatters.dart';
 import 'package:meu_preco/core/utils/image_picker_helper.dart';
 import 'package:meu_preco/data/services/unsplash_service.dart';
 import 'package:meu_preco/domain/entities/produto.dart';
 import 'package:meu_preco/presentation/controllers/produto_controller.dart';
-// import 'package:image_picker/image_picker.dart'; // Temporariamente comentado
+import 'package:meu_preco/presentation/widgets/image_selection_dialog.dart';
+import 'package:meu_preco/presentation/widgets/image_options_bottom_sheet.dart';
+import 'package:meu_preco/presentation/widgets/image_selector.dart';
 
 class ProdutoFormPage extends StatefulWidget {
   final String? produtoId;
@@ -39,7 +40,6 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
   Produto? _produtoOriginal;
   final UnsplashService _unsplashService = UnsplashService();
   List<String> _imagensEncontradas = [];
-  // Não precisamos de uma instância do helper pois usamos métodos estáticos
 
   @override
   void initState() {
@@ -129,7 +129,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
 
   Future<void> _buscarImagens() async {
     if (_nomeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Digite o nome do produto para buscar imagens')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Digite o nome do produto para buscar imagens')));
       return;
     }
 
@@ -138,7 +140,16 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
     });
 
     try {
-      final imagens = await _unsplashService.buscarImagens(_nomeController.text);
+      // Otimização da query para melhorar relevância das imagens
+      String query = '${_nomeController.text} alimento';
+      // Adiciona termos específicos com base na unidade selecionada
+      if (_unidade == 'kg' || _unidade == 'g') {
+        query += ' ingrediente';
+      } else if (_unidade == 'L' || _unidade == 'ml') {
+        query += ' bebida líquido';
+      }
+
+      final imagens = await _unsplashService.buscarImagens(query, perPage: 30, category: 'food');
 
       setState(() {
         _imagensEncontradas = imagens;
@@ -146,7 +157,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
       });
 
       if (imagens.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nenhuma imagem encontrada para este produto')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Nenhuma imagem encontrada para este produto')));
         return;
       }
 
@@ -184,79 +197,20 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
   }
 
   void _mostrarDialogoSelecaoImagem(List<String> imagens) {
-    showDialog(
+    mostrarDialogoSelecaoImagem(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Selecione uma imagem'),
-            content: SizedBox(
-              width: double.maxFinite,
-              height: 300,
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8),
-                itemCount: imagens.length,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      _salvarImagemDaWeb(imagens[index]);
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        imagens[index],
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.error)),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(child: CircularProgressIndicator(value: loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null));
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar'))],
-          ),
+      imagens: imagens,
+      title: 'Selecione uma imagem para o produto',
+      onImageSelected: _salvarImagemDaWeb,
     );
   }
 
   void _mostrarOpcoesImagem() {
-    showModalBottomSheet(
+    mostrarOpcoesImagem(
       context: context,
-      builder:
-          (context) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.photo_library),
-                  title: const Text('Galeria'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _selecionarImagem();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.camera_alt),
-                  title: const Text('Câmera'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _tirarFoto();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.search),
-                  title: const Text('Buscar online'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _buscarImagens();
-                  },
-                ),
-              ],
-            ),
-          ),
+      onGalleryTap: _selecionarImagem,
+      onCameraTap: _tirarFoto,
+      onSearchTap: _buscarImagens,
     );
   }
 
@@ -271,7 +225,11 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_isEdicao ? 'Editar Produto' : 'Cadastrar Produto'), backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white),
+      appBar: AppBar(
+        title: Text(_isEdicao ? 'Editar Produto' : 'Cadastrar Produto'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+      ),
       body:
           _carregando
               ? const Center(child: CircularProgressIndicator())
@@ -293,6 +251,16 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                           if (value == null || value.isEmpty) {
                             return 'Digite o nome do produto';
                           }
+
+                          // Verificar se já existe um produto com este nome
+                          final controller = context.read<ProdutoController>();
+                          if (controller.existeProdutoComNome(
+                            value,
+                            idIgnorar: _isEdicao ? _produtoOriginal?.id : null,
+                          )) {
+                            return 'Já existe um produto com este nome';
+                          }
+
                           return null;
                         },
                       ),
@@ -357,7 +325,11 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
                       const SizedBox(height: 24),
                       if (_isEdicao) _buildPrecoUnitario(),
                       const SizedBox(height: 16),
-                      ElevatedButton(onPressed: _salvar, style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)), child: Text(_isEdicao ? 'Atualizar' : 'Cadastrar')),
+                      ElevatedButton(
+                        onPressed: _salvar,
+                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                        child: Text(_isEdicao ? 'Atualizar' : 'Cadastrar'),
+                      ),
                     ],
                   ),
                 ),
@@ -366,12 +338,10 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
   }
 
   Widget _buildImageSelector() {
-    return Column(
-      children: [
-        GestureDetector(onTap: _mostrarOpcoesImagem, child: _imagemUrl != null ? Container(height: 200, width: double.infinity, decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), image: DecorationImage(image: _imagemUrl!.startsWith('http') ? NetworkImage(_imagemUrl!) as ImageProvider : FileImage(File(_imagemUrl!)) as ImageProvider, fit: BoxFit.cover))) : Container(height: 200, width: double.infinity, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: const [Icon(Icons.image, size: 64, color: Colors.grey), SizedBox(height: 8), Text('Toque para adicionar imagem', style: TextStyle(color: Colors.grey))]))),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(onPressed: _mostrarOpcoesImagem, icon: const Icon(Icons.add_photo_alternate), label: const Text('Adicionar ou alterar imagem')),
-      ],
+    return ImageSelector(
+      imageUrl: _imagemUrl,
+      onTap: _mostrarOpcoesImagem,
+      placeholder: 'Toque para adicionar imagem do produto',
     );
   }
 
@@ -391,9 +361,21 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
           children: [
             const Text('Resumo do Preço', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Preço unitário:'), Text(MoneyFormatter.formatReal(precoUnitario), style: const TextStyle(fontWeight: FontWeight.bold))]),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Preço unitário:'),
+                Text(MoneyFormatter.formatReal(precoUnitario), style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
             const SizedBox(height: 4),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Preço por $_unidade:'), Text(MoneyFormatter.formatReal(precoUnitario), style: const TextStyle(fontWeight: FontWeight.bold))]),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Preço por $_unidade:'),
+                Text(MoneyFormatter.formatReal(precoUnitario), style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
           ],
         ),
       ),
@@ -407,7 +389,8 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
 
         final nome = _nomeController.text;
         final precoTexto = _precoController.text.replaceAll('R\$', '').trim();
-        final precoFormatado = precoTexto.contains(',') ? precoTexto.replaceAll('.', '').replaceAll(',', '.') : precoTexto;
+        final precoFormatado =
+            precoTexto.contains(',') ? precoTexto.replaceAll('.', '').replaceAll(',', '.') : precoTexto;
 
         final preco = double.parse(precoFormatado);
         final quantidade = double.parse(_quantidadeController.text);
@@ -417,15 +400,34 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
           bool precoAlterado = _produtoOriginal!.preco != preco;
 
           // Atualizar o produto
-          final produtoAtualizado = Produto(id: _produtoOriginal!.id, nome: nome, preco: preco, quantidade: quantidade, unidade: _unidade, imagemUrl: _imagemUrl);
+          final produtoAtualizado = Produto(
+            id: _produtoOriginal!.id,
+            nome: nome,
+            preco: preco,
+            quantidade: quantidade,
+            unidade: _unidade,
+            imagemUrl: _imagemUrl,
+          );
           controller.atualizarProduto(produtoAtualizado);
 
           // Se o preço foi alterado, mostrar um SnackBar informando que as receitas serão atualizadas
           if (precoAlterado) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Receitas que utilizam este produto terão seus preços atualizados automaticamente.'), duration: Duration(seconds: 4), backgroundColor: Colors.green));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Receitas que utilizam este produto terão seus preços atualizados automaticamente.'),
+                duration: Duration(seconds: 4),
+                backgroundColor: Colors.green,
+              ),
+            );
           }
         } else {
-          controller.salvarProduto(nome: nome, preco: preco, quantidade: quantidade, unidade: _unidade, imagemUrl: _imagemUrl);
+          controller.salvarProduto(
+            nome: nome,
+            preco: preco,
+            quantidade: quantidade,
+            unidade: _unidade,
+            imagemUrl: _imagemUrl,
+          );
         }
 
         context.pop();

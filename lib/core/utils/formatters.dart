@@ -9,7 +9,7 @@ class MoneyFormatter {
 }
 
 class NumberFormatter {
-  static final NumberFormat _decimalFormat = NumberFormat.decimalPattern('pt_BR');
+  static final NumberFormat decimalFormat = NumberFormat.decimalPattern('pt_BR');
 
   static String formatDecimal(double value, {int decimalDigits = 2}) {
     final format = NumberFormat.decimalPattern('pt_BR');
