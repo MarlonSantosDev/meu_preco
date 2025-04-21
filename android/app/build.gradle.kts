@@ -6,9 +6,10 @@ plugins {
 }
 
 android {
-    namespace = "com.example.meu_preco"
+    namespace = "com.meupreco.app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
+    // ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -20,10 +21,9 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.meu_preco"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        // Unique Application ID
+        applicationId = "com.meupreco.app"
+        // Garantir que o minSdkVersion seja pelo menos 21 para suportar todas as funcionalidades
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -41,4 +41,10 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Dependências necessárias para o funcionamento adequado dos plugins
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
 }

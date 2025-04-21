@@ -26,12 +26,32 @@ class _ReceitaDetalhesPageState extends State<ReceitaDetalhesPage> {
     _carregarReceita();
   }
 
+  // Função temporária para verificar cálculos
+  void _verificarCalculos(Receita receita) {
+    print('=== VERIFICAÇÃO DE CÁLCULOS ===');
+    print('Custo Ingredientes: ${receita.custoIngredientes}');
+    print('% Gastos: ${receita.percentualGastos * 100}%');
+    print('% Mão de Obra: ${receita.percentualMaoDeObra * 100}%');
+    print('% Total: ${receita.percentualTotal * 100}%');
+    print('Valor Gastos: ${receita.valorGastosEscondidos}');
+    print('Valor Mão de Obra: ${receita.valorMaoDeObra}');
+    print('Valor Percentuais: ${receita.valorPercentuais}');
+    print('Valor Lucro (100%): ${receita.valorLucro}');
+    print('Valor Total: ${receita.valorTotal}');
+    print('Rendimento: ${receita.rendimento} ${receita.unidadeRendimento}');
+    print('Valor por Unidade: ${receita.valorPorUnidade}');
+    print('==============================');
+  }
+
   Future<void> _carregarReceita() async {
     try {
       final controller = context.read<ReceitaController>();
       final receita = await controller.obterReceitaPorId(widget.receitaId);
 
       if (receita != null) {
+        // Adiciona chamada para verificar cálculos
+        _verificarCalculos(receita);
+
         setState(() {
           _receita = receita;
           _carregando = false;
@@ -113,11 +133,13 @@ class _ReceitaDetalhesPageState extends State<ReceitaDetalhesPage> {
     if (_receita == null) return const SizedBox.shrink();
 
     final custoIngredientes = _receita!.custoIngredientes;
-    final custoComGastos = _receita!.custoComGastos;
+    final valorGastosEscondidos = _receita!.valorGastosEscondidos;
+    final valorMaoDeObra = _receita!.valorMaoDeObra;
+    final valorLucro = _receita!.valorLucro;
     final valorTotal = _receita!.valorTotal;
     final valorPorUnidade = _receita!.valorPorUnidade;
 
-    return Card(child: Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildItemPrecificacao('Custo dos Ingredientes', MoneyFormatter.formatReal(custoIngredientes)), const Divider(), _buildItemPrecificacao('Gastos "escondidos" (${NumberFormatter.formatPercent(_receita!.percentualGastos)})', MoneyFormatter.formatReal(custoIngredientes * _receita!.percentualGastos)), const Divider(), _buildItemPrecificacao('Custo com gastos', MoneyFormatter.formatReal(custoComGastos)), const Divider(), _buildItemPrecificacao('Mão de obra (${NumberFormatter.formatPercent(_receita!.percentualMaoDeObra)})', MoneyFormatter.formatReal(valorTotal - custoComGastos)), const Divider(), _buildItemPrecificacao('Valor Total', MoneyFormatter.formatReal(valorTotal), destaque: true), const Divider(), _buildItemPrecificacao('Valor por ${_receita!.unidadeRendimento}', MoneyFormatter.formatReal(valorPorUnidade), destaque: true)])));
+    return Card(child: Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildItemPrecificacao('Custo dos Ingredientes', MoneyFormatter.formatReal(custoIngredientes)), const Divider(), _buildItemPrecificacao('Gastos "escondidos" (${NumberFormatter.formatPercent(_receita!.percentualGastos)})', MoneyFormatter.formatReal(valorGastosEscondidos)), const Divider(), _buildItemPrecificacao('Mão de obra (${NumberFormatter.formatPercent(_receita!.percentualMaoDeObra)})', MoneyFormatter.formatReal(valorMaoDeObra)), const Divider(), _buildItemPrecificacao('Total percentuais (${NumberFormatter.formatPercent(_receita!.percentualTotal)})', MoneyFormatter.formatReal(_receita!.valorPercentuais)), const Divider(), _buildItemPrecificacao('Lucro (100%)', MoneyFormatter.formatReal(valorLucro)), const Divider(), _buildItemPrecificacao('Valor Total', MoneyFormatter.formatReal(valorTotal), destaque: true), const Divider(), _buildItemPrecificacao('Valor por ${_receita!.unidadeRendimento}', MoneyFormatter.formatReal(valorPorUnidade), destaque: true)])));
   }
 
   Widget _buildItemPrecificacao(String label, String valor, {bool destaque = false}) {

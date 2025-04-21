@@ -11,12 +11,12 @@ O App será feito em português do Brasil.
 A moeda utilizada será o Real.
 O app será feito para Android
 O app tem ter o seguintes requisitos:
- - Uma tela de cadastrar produto
+- Uma tela de cadastrar produto
     - Informa o preço e quantidade de compras
         Exemplo: 1kg de arroz por R$ 10,00
                 1L de leite por R$ 5,00
                 250mg de açucar por R$ 10,00
- - Uma tela para criar um receita
+- Uma tela para criar um receita
     - Na tela de criar receita deve selecionar o produto e a quantidade utilizada na receita
         Exemplo: 100mg de arroz
                  Uma Xicara de 200ml de leite
@@ -27,6 +27,16 @@ O app tem ter o seguintes requisitos:
     - No final tem de informar de forma bem clara o preço de venda do produto. Unidade, kg, ml, etc.
     - Quero o preço bem detalhado, custo da receita, preço de venda, lucro, margem, quero a composição do preço de completo.
     - Toda a precificação deve ser feita de forma automática.
-Ao alterar o preço do produto, a receita deve ser recalculada e atualizada.
-Veja o exemplo de como deve ser a precificação em anexo. @modelo.jpg
+    - Ao alterar o preço do produto, a receita deve ser recalculada e atualizada.
+    - Veja o exemplo de como deve ser a precificação em anexo. @modelo.jpg
+- Caso seja possível buscar a imagem dos produtos e receita automaticamente.
+    - Segue dados da api do Unsplash 
+        Aplicação: Meu Preço
+        Application ID: 740905
+        Access Key: X1QJMWLXWfCBDBSJUyjjJLWEXiw5aY-uWl0I4YNnP2k
+		Secret key: U0MpElnTG4NgOcwxZhP3NfvLuplo4W2OJMQR5uAyay0
+		Código de autorização: BC8ze2PpU7XKPj9_TAjlHQPrzwyNET3h3fzjdIRsS5w
+	- Caso tenha outra melhor faça a troca da api Unsplash. 
+	- Deixa a opção para insetir a foto pelo usuário caso não localize a foto na api de fotos ou queira mudar a atual.
 Faça testes para verificar se o app está funcionando corretamente.
+

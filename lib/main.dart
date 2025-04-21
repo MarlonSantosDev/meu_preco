@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:meu_preco/data/datasources/hive_datasource.dart';
 import 'package:meu_preco/data/repositories/produto_repository_impl.dart';
 import 'package:meu_preco/data/repositories/receita_repository_impl.dart';
@@ -15,7 +16,34 @@ void main() async {
   // Inicializar o Hive
   await HiveDataSource.init();
 
-  runApp(const MyApp());
+  // Teste de cálculo de precificação com base no modelo
+  _testeCalculoPreco();
+
+  // Criando datasource e repositories
+  final dataSource = HiveDataSource();
+  final produtoRepository = ProdutoRepositoryImpl(dataSource);
+  final receitaRepository = ReceitaRepositoryImpl(dataSource);
+
+  // Criando usecases de produto
+  final obterTodosProdutosUseCase = ObterTodosProdutosUseCase(produtoRepository);
+  final obterProdutoPorIdUseCase = ObterProdutoPorIdUseCase(produtoRepository);
+  final salvarProdutoUseCase = SalvarProdutoUseCase(produtoRepository);
+  final atualizarProdutoUseCase = AtualizarProdutoUseCase(produtoRepository);
+  final removerProdutoUseCase = RemoverProdutoUseCase(produtoRepository);
+
+  // Criando usecases de receita
+  final obterTodasReceitasUseCase = ObterTodasReceitasUseCase(receitaRepository);
+  final obterReceitaPorIdUseCase = ObterReceitaPorIdUseCase(receitaRepository);
+  final salvarReceitaUseCase = SalvarReceitaUseCase(receitaRepository);
+  final atualizarReceitaUseCase = AtualizarReceitaUseCase(receitaRepository);
+  final removerReceitaUseCase = RemoverReceitaUseCase(receitaRepository);
+
+  // Criando controllers
+  final produtoController = ProdutoController(obterTodosProdutosUseCase: obterTodosProdutosUseCase, obterProdutoPorIdUseCase: obterProdutoPorIdUseCase, salvarProdutoUseCase: salvarProdutoUseCase, atualizarProdutoUseCase: atualizarProdutoUseCase, removerProdutoUseCase: removerProdutoUseCase, obterTodasReceitasUseCase: obterTodasReceitasUseCase, atualizarReceitaUseCase: atualizarReceitaUseCase);
+
+  final receitaController = ReceitaController(obterTodasReceitasUseCase: obterTodasReceitasUseCase, obterReceitaPorIdUseCase: obterReceitaPorIdUseCase, salvarReceitaUseCase: salvarReceitaUseCase, atualizarReceitaUseCase: atualizarReceitaUseCase, removerReceitaUseCase: removerReceitaUseCase);
+
+  runApp(MultiProvider(providers: [ChangeNotifierProvider<ProdutoController>(create: (_) => produtoController), ChangeNotifierProvider<ReceitaController>(create: (_) => receitaController)], child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -23,69 +51,37 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        // Datasource
-        Provider(create: (_) => HiveDataSource()),
-
-        // Repositories
-        ProxyProvider<HiveDataSource, ProdutoRepositoryImpl>(update: (_, dataSource, __) => ProdutoRepositoryImpl(dataSource)),
-        ProxyProvider<HiveDataSource, ReceitaRepositoryImpl>(update: (_, dataSource, __) => ReceitaRepositoryImpl(dataSource)),
-
-        // Usecases - Produtos
-        ProxyProvider<ProdutoRepositoryImpl, ObterTodosProdutosUseCase>(update: (_, repository, __) => ObterTodosProdutosUseCase(repository)),
-        ProxyProvider<ProdutoRepositoryImpl, ObterProdutoPorIdUseCase>(update: (_, repository, __) => ObterProdutoPorIdUseCase(repository)),
-        ProxyProvider<ProdutoRepositoryImpl, SalvarProdutoUseCase>(update: (_, repository, __) => SalvarProdutoUseCase(repository)),
-        ProxyProvider<ProdutoRepositoryImpl, AtualizarProdutoUseCase>(update: (_, repository, __) => AtualizarProdutoUseCase(repository)),
-        ProxyProvider<ProdutoRepositoryImpl, RemoverProdutoUseCase>(update: (_, repository, __) => RemoverProdutoUseCase(repository)),
-
-        // Usecases - Receitas
-        ProxyProvider<ReceitaRepositoryImpl, ObterTodasReceitasUseCase>(update: (_, repository, __) => ObterTodasReceitasUseCase(repository)),
-        ProxyProvider<ReceitaRepositoryImpl, ObterReceitaPorIdUseCase>(update: (_, repository, __) => ObterReceitaPorIdUseCase(repository)),
-        ProxyProvider<ReceitaRepositoryImpl, SalvarReceitaUseCase>(update: (_, repository, __) => SalvarReceitaUseCase(repository)),
-        ProxyProvider<ReceitaRepositoryImpl, AtualizarReceitaUseCase>(update: (_, repository, __) => AtualizarReceitaUseCase(repository)),
-        ProxyProvider<ReceitaRepositoryImpl, RemoverReceitaUseCase>(update: (_, repository, __) => RemoverReceitaUseCase(repository)),
-
-        // Controllers
-        ChangeNotifierProxyProvider5<ObterTodosProdutosUseCase, ObterProdutoPorIdUseCase, SalvarProdutoUseCase, AtualizarProdutoUseCase, RemoverProdutoUseCase, ProdutoController>(
-          create: (_) => ProdutoController(obterTodosProdutosUseCase: ObterTodosProdutosUseCase(ProdutoRepositoryImpl(HiveDataSource())), obterProdutoPorIdUseCase: ObterProdutoPorIdUseCase(ProdutoRepositoryImpl(HiveDataSource())), salvarProdutoUseCase: SalvarProdutoUseCase(ProdutoRepositoryImpl(HiveDataSource())), atualizarProdutoUseCase: AtualizarProdutoUseCase(ProdutoRepositoryImpl(HiveDataSource())), removerProdutoUseCase: RemoverProdutoUseCase(ProdutoRepositoryImpl(HiveDataSource())), obterTodasReceitasUseCase: ObterTodasReceitasUseCase(ReceitaRepositoryImpl(HiveDataSource())), atualizarReceitaUseCase: AtualizarReceitaUseCase(ReceitaRepositoryImpl(HiveDataSource()))),
-          update: (_, obterTodos, obterPorId, salvar, atualizar, remover, previous) {
-            previous!
-              ..obterTodosProdutosUseCase = obterTodos
-              ..obterProdutoPorIdUseCase = obterPorId
-              ..salvarProdutoUseCase = salvar
-              ..atualizarProdutoUseCase = atualizar
-              ..removerProdutoUseCase = remover;
-            return previous;
-          },
-        ),
-
-        // Injetando dependências de receitas no ProdutoController
-        ProxyProvider2<ObterTodasReceitasUseCase, AtualizarReceitaUseCase, ProdutoController>(
-          update: (_, obterTodasReceitas, atualizarReceita, previous) {
-            if (previous != null) {
-              previous
-                ..obterTodasReceitasUseCase = obterTodasReceitas
-                ..atualizarReceitaUseCase = atualizarReceita;
-            }
-            return previous!;
-          },
-        ),
-
-        ChangeNotifierProxyProvider5<ObterTodasReceitasUseCase, ObterReceitaPorIdUseCase, SalvarReceitaUseCase, AtualizarReceitaUseCase, RemoverReceitaUseCase, ReceitaController>(
-          create: (_) => ReceitaController(obterTodasReceitasUseCase: ObterTodasReceitasUseCase(ReceitaRepositoryImpl(HiveDataSource())), obterReceitaPorIdUseCase: ObterReceitaPorIdUseCase(ReceitaRepositoryImpl(HiveDataSource())), salvarReceitaUseCase: SalvarReceitaUseCase(ReceitaRepositoryImpl(HiveDataSource())), atualizarReceitaUseCase: AtualizarReceitaUseCase(ReceitaRepositoryImpl(HiveDataSource())), removerReceitaUseCase: RemoverReceitaUseCase(ReceitaRepositoryImpl(HiveDataSource()))),
-          update: (_, obterTodas, obterPorId, salvar, atualizar, remover, previous) {
-            previous!
-              ..obterTodasReceitasUseCase = obterTodas
-              ..obterReceitaPorIdUseCase = obterPorId
-              ..salvarReceitaUseCase = salvar
-              ..atualizarReceitaUseCase = atualizar
-              ..removerReceitaUseCase = remover;
-            return previous;
-          },
-        ),
-      ],
-      child: MaterialApp.router(title: 'Meu Preço', theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.green, primary: Colors.green, secondary: Colors.teal), useMaterial3: true, appBarTheme: const AppBarTheme(backgroundColor: Colors.green, foregroundColor: Colors.white), elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white))), routerConfig: router),
-    );
+    return MaterialApp.router(title: 'Meu Preço', theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.green, primary: Colors.green, secondary: Colors.teal), useMaterial3: true, appBarTheme: const AppBarTheme(backgroundColor: Colors.green, foregroundColor: Colors.white), elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white))), routerConfig: router);
   }
+}
+
+// Função para testar o cálculo de precificação
+void _testeCalculoPreco() {
+  print('\n=== TESTE DE CÁLCULO DO PREÇO ===');
+
+  // Simulando o valor da receita como 10.93 (exemplo da imagem)
+  double valorReceita = 10.93;
+  double percentualGastos = 0.2; // 20%
+  double percentualMaoDeObra = 0.2; // 20%
+
+  // Calculando conforme o modelo
+  double valorGastos = valorReceita * percentualGastos;
+  double valorMaoDeObra = valorReceita * percentualMaoDeObra;
+  double percentualTotal = percentualGastos + percentualMaoDeObra; // 40%
+  double valorPercentuais = valorReceita * percentualTotal;
+  double valorLucro = valorReceita; // 100% do valor da receita
+  double valorTotal = valorReceita + valorPercentuais + valorLucro;
+
+  print('Valor da Receita: $valorReceita');
+  print('% Gastos: ${percentualGastos * 100}%');
+  print('% Mão de Obra: ${percentualMaoDeObra * 100}%');
+  print('Valor Gastos: $valorGastos');
+  print('Valor Mão de Obra: $valorMaoDeObra');
+  print('Valor Percentuais: $valorPercentuais');
+  print('Valor Lucro (100%): $valorLucro');
+  print('Valor Total: $valorTotal');
+
+  // Verificando se o resultado é próximo do exemplo (26.23)
+  print('Verificação: Valor esperado na imagem = 26.23, Valor calculado = $valorTotal');
+  print('==================================\n');
 }

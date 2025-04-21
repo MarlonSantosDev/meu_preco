@@ -29,6 +29,12 @@ final GoRouter router = GoRouter(
       },
     ),
     GoRoute(
+      path: '/produtos/novo',
+      builder: (BuildContext context, GoRouterState state) {
+        return const ProdutoFormPage();
+      },
+    ),
+    GoRoute(
       path: '/produtos/editar/:id',
       builder: (BuildContext context, GoRouterState state) {
         final id = state.pathParameters['id'];
@@ -43,6 +49,12 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: '/receitas/cadastrar',
+      builder: (BuildContext context, GoRouterState state) {
+        return const ReceitaFormPage();
+      },
+    ),
+    GoRoute(
+      path: '/receitas/nova',
       builder: (BuildContext context, GoRouterState state) {
         return const ReceitaFormPage();
       },

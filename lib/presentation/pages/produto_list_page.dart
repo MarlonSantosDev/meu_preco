@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:meu_preco/core/utils/formatters.dart';
 import 'package:meu_preco/domain/entities/produto.dart';
@@ -18,9 +17,8 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProdutoController>().carregarProdutos();
-    });
+    // Carregar os produtos quando a tela for inicializada
+    Future.microtask(() => context.read<ProdutoController>().carregarProdutos());
   }
 
   @override
@@ -35,16 +33,21 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
               : controller.erro != null
               ? Center(child: Text(controller.erro!))
               : controller.produtos.isEmpty
-              ? const Center(child: Text('Nenhum produto cadastrado.'))
+              ? _buildListaVazia()
               : ListView.builder(
+                padding: const EdgeInsets.all(16),
                 itemCount: controller.produtos.length,
                 itemBuilder: (context, index) {
                   final produto = controller.produtos[index];
-                  return Slidable(endActionPane: ActionPane(motion: const ScrollMotion(), children: [SlidableAction(onPressed: (_) => _editarProduto(produto), backgroundColor: Colors.blue, foregroundColor: Colors.white, icon: Icons.edit, label: 'Editar'), SlidableAction(onPressed: (_) => _confirmarExclusao(produto), backgroundColor: Colors.red, foregroundColor: Colors.white, icon: Icons.delete, label: 'Excluir')]), child: ListTile(leading: _buildProdutoImagem(produto), title: Text(produto.nome), subtitle: Text('${produto.quantidade} ${produto.unidade} - ${MoneyFormatter.formatReal(produto.preco)}'), onTap: () => _editarProduto(produto)));
+                  return Card(margin: const EdgeInsets.only(bottom: 12), child: ListTile(contentPadding: const EdgeInsets.all(12), leading: _buildProdutoImagem(produto), title: Text(produto.nome, style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const SizedBox(height: 4), Text('${produto.quantidade} ${produto.unidade}'), Text(MoneyFormatter.formatReal(produto.preco), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green))]), trailing: Row(mainAxisSize: MainAxisSize.min, children: [IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _editarProduto(produto)), IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _confirmarExclusao(produto))]), onTap: () => _editarProduto(produto)));
                 },
               ),
-      floatingActionButton: FloatingActionButton(onPressed: () => context.push('/produtos/cadastrar'), child: const Icon(Icons.add)),
+      floatingActionButton: FloatingActionButton(onPressed: () => context.push('/produtos/novo'), backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white, child: const Icon(Icons.add)),
     );
+  }
+
+  Widget _buildListaVazia() {
+    return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.shopping_basket, size: 80, color: Colors.grey), const SizedBox(height: 16), const Text('Nenhum produto cadastrado', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 8), const Text('Adicione produtos para criar suas receitas', style: TextStyle(color: Colors.grey)), const SizedBox(height: 24), ElevatedButton.icon(onPressed: () => context.push('/produtos/novo'), icon: const Icon(Icons.add), label: const Text('Adicionar Produto'))]));
   }
 
   Widget _buildProdutoImagem(Produto produto) {
@@ -76,7 +79,7 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
                   Navigator.of(context).pop();
                   _excluirProduto(produto.id);
                 },
-                child: const Text('Excluir'),
+                child: const Text('Excluir', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
@@ -84,6 +87,11 @@ class _ProdutoListPageState extends State<ProdutoListPage> {
   }
 
   void _excluirProduto(String id) {
-    context.read<ProdutoController>().removerProduto(id);
+    try {
+      context.read<ProdutoController>().removerProduto(id);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Produto excluído com sucesso'), backgroundColor: Colors.green));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao excluir produto: $e'), backgroundColor: Colors.red));
+    }
   }
 }

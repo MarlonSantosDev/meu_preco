@@ -3,16 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:http/http.dart' as http;
 import 'package:meu_preco/core/utils/formatters.dart';
+import 'package:meu_preco/core/utils/image_picker_helper.dart';
+import 'package:meu_preco/data/services/unsplash_service.dart';
 import 'package:meu_preco/domain/entities/ingrediente.dart';
 import 'package:meu_preco/domain/entities/produto.dart';
 import 'package:meu_preco/domain/entities/receita.dart';
 import 'package:meu_preco/presentation/controllers/produto_controller.dart';
 import 'package:meu_preco/presentation/controllers/receita_controller.dart';
 import 'package:provider/provider.dart';
+// import 'package:image_picker/image_picker.dart'; // Temporariamente comentado
 
 class ReceitaFormPage extends StatefulWidget {
   final String? receitaId;
@@ -36,11 +39,15 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
 
   bool _isEdicao = false;
   bool _carregando = true;
+  bool _buscandoImagens = false;
   String? _erro;
   String? _imagemUrl;
 
   Receita? _receitaOriginal;
   List<Ingrediente> _ingredientes = [];
+  final UnsplashService _unsplashService = UnsplashService();
+  List<String> _imagensEncontradas = [];
+  // Não precisamos de uma instância do helper pois usamos métodos estáticos
 
   @override
   void initState() {
@@ -100,22 +107,190 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
   }
 
   Future<void> _selecionarImagem() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    try {
+      final pickedFile = await ImagePickerHelper.pickImage(source: ImagePickerHelper.gallery);
 
-    if (pickedFile != null) {
-      // Copiar a imagem para um local permanente
-      final documentsDir = await getApplicationDocumentsDirectory();
-      final filename = 'receita_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final imagePath = path.join(documentsDir.path, filename);
+      if (pickedFile != null) {
+        // Copiar a imagem para um local permanente
+        final documentsDir = await getApplicationDocumentsDirectory();
+        final filename = 'receita_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final imagePath = path.join(documentsDir.path, filename);
 
-      final file = File(pickedFile.path);
-      final savedFile = await file.copy(imagePath);
+        final file = File(pickedFile.path);
+        final savedFile = await file.copy(imagePath);
+
+        setState(() {
+          _imagemUrl = savedFile.path;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao selecionar imagem: $e')));
+    }
+  }
+
+  Future<void> _tirarFoto() async {
+    try {
+      final pickedFile = await ImagePickerHelper.pickImage(source: ImagePickerHelper.camera);
+
+      if (pickedFile != null) {
+        // Copiar a imagem para um local permanente
+        final documentsDir = await getApplicationDocumentsDirectory();
+        final filename = 'receita_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final imagePath = path.join(documentsDir.path, filename);
+
+        final file = File(pickedFile.path);
+        final savedFile = await file.copy(imagePath);
+
+        setState(() {
+          _imagemUrl = savedFile.path;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao tirar foto: $e')));
+    }
+  }
+
+  Future<void> _buscarImagens() async {
+    if (_nomeController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Digite o nome da receita para buscar imagens')));
+      return;
+    }
+
+    setState(() {
+      _buscandoImagens = true;
+    });
+
+    try {
+      final imagens = await _unsplashService.buscarImagens('${_nomeController.text} food');
 
       setState(() {
-        _imagemUrl = savedFile.path;
+        _imagensEncontradas = imagens;
+        _buscandoImagens = false;
       });
+
+      if (imagens.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nenhuma imagem encontrada para esta receita')));
+        return;
+      }
+
+      // Exibir diálogo com as imagens encontradas
+      _mostrarDialogoSelecaoImagem(imagens);
+    } catch (e) {
+      setState(() {
+        _buscandoImagens = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao buscar imagens: $e')));
     }
+  }
+
+  Future<void> _salvarImagemDaWeb(String imageUrl) async {
+    try {
+      final response = await _unsplashService.baixarImagem(imageUrl);
+
+      if (response.statusCode == 200) {
+        final documentsDir = await getApplicationDocumentsDirectory();
+        final filename = 'receita_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final imagePath = path.join(documentsDir.path, filename);
+
+        final file = File(imagePath);
+        await file.writeAsBytes(response.bodyBytes);
+
+        setState(() {
+          _imagemUrl = file.path;
+        });
+      } else {
+        throw Exception('Falha ao baixar a imagem: ${response.statusCode}');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao salvar imagem: $e')));
+    }
+  }
+
+  void _mostrarDialogoSelecaoImagem(List<String> imagens) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Selecione uma imagem'),
+            content: SizedBox(
+              width: double.maxFinite,
+              height: 300,
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8),
+                itemCount: imagens.length,
+                itemBuilder: (context, index) {
+                  return InkWell(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _salvarImagemDaWeb(imagens[index]);
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        imagens[index],
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.error)),
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(child: CircularProgressIndicator(value: loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null));
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar'))],
+          ),
+    );
+  }
+
+  void _mostrarOpcoesImagem() {
+    showModalBottomSheet(
+      context: context,
+      builder:
+          (context) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Galeria'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _selecionarImagem();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Câmera'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _tirarFoto();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.search),
+                  title: const Text('Buscar online'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _buscarImagens();
+                  },
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Widget _buildImageSelector() {
+    return Column(
+      children: [
+        GestureDetector(onTap: _mostrarOpcoesImagem, child: _imagemUrl != null ? Container(height: 200, width: double.infinity, decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), image: DecorationImage(image: _imagemUrl!.startsWith('http') ? NetworkImage(_imagemUrl!) as ImageProvider : FileImage(File(_imagemUrl!)) as ImageProvider, fit: BoxFit.cover))) : Container(height: 200, width: double.infinity, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: const [Icon(Icons.image, size: 64, color: Colors.grey), SizedBox(height: 8), Text('Toque para adicionar imagem', style: TextStyle(color: Colors.grey))]))),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(onPressed: _mostrarOpcoesImagem, icon: const Icon(Icons.add_photo_alternate), label: const Text('Adicionar ou alterar imagem')),
+      ],
+    );
   }
 
   @override
@@ -254,10 +429,6 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
     );
   }
 
-  Widget _buildImageSelector() {
-    return Column(children: [if (_imagemUrl != null) Container(height: 200, width: double.infinity, decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), image: DecorationImage(image: _imagemUrl!.startsWith('http') ? NetworkImage(_imagemUrl!) as ImageProvider : FileImage(File(_imagemUrl!)) as ImageProvider, fit: BoxFit.cover))) else Container(height: 200, width: double.infinity, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.image, size: 64, color: Colors.grey)), const SizedBox(height: 8), ElevatedButton.icon(onPressed: _selecionarImagem, icon: const Icon(Icons.photo_library), label: const Text('Adicionar Foto'))]);
-  }
-
   Widget _buildPercentageSlider(String label, double value, void Function(double) onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,13 +448,18 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
   Widget _buildResumoReceita() {
     final custoIngredientes = _ingredientes.fold<double>(0, (sum, ingrediente) => sum + ingrediente.custoTotal);
 
-    final custoComGastos = custoIngredientes * (1 + _percentualGastos);
-    final valorTotal = custoComGastos / (1 - _percentualMaoDeObra);
+    final valorGastosEscondidos = custoIngredientes * _percentualGastos;
+    final valorMaoDeObra = custoIngredientes * _percentualMaoDeObra;
+    final percentualTotal = _percentualGastos + _percentualMaoDeObra;
+    final valorPercentuais = custoIngredientes * percentualTotal;
+    final valorLucro = custoIngredientes; // 100% do custo dos ingredientes
+
+    final valorTotal = custoIngredientes + valorPercentuais + valorLucro;
 
     final rendimento = double.tryParse(_rendimentoController.text) ?? 1.0;
-    final valorUnitario = valorTotal / rendimento;
+    final valorUnitario = rendimento > 0 ? valorTotal / rendimento : 0.0;
 
-    return Card(child: Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Resumo da Precificação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 16), _buildResumoItem('Custo dos Ingredientes', MoneyFormatter.formatReal(custoIngredientes)), const Divider(), _buildResumoItem('Gastos "escondidos" (${NumberFormatter.formatPercent(_percentualGastos)})', MoneyFormatter.formatReal(custoIngredientes * _percentualGastos)), const Divider(), _buildResumoItem('Custo com gastos', MoneyFormatter.formatReal(custoComGastos)), const Divider(), _buildResumoItem('Mão de obra (${NumberFormatter.formatPercent(_percentualMaoDeObra)})', MoneyFormatter.formatReal(valorTotal - custoComGastos)), const Divider(), _buildResumoItem('Valor Total', MoneyFormatter.formatReal(valorTotal), destaque: true), const Divider(), _buildResumoItem('Valor por $_unidadeRendimento', MoneyFormatter.formatReal(valorUnitario), destaque: true)])));
+    return Card(child: Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Resumo da Precificação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 16), _buildResumoItem('Custo dos Ingredientes', MoneyFormatter.formatReal(custoIngredientes)), const Divider(), _buildResumoItem('Gastos "escondidos" (${NumberFormatter.formatPercent(_percentualGastos)})', MoneyFormatter.formatReal(valorGastosEscondidos)), const Divider(), _buildResumoItem('Mão de obra (${NumberFormatter.formatPercent(_percentualMaoDeObra)})', MoneyFormatter.formatReal(valorMaoDeObra)), const Divider(), _buildResumoItem('Total percentuais (${NumberFormatter.formatPercent(percentualTotal)})', MoneyFormatter.formatReal(valorPercentuais)), const Divider(), _buildResumoItem('Lucro (100%)', MoneyFormatter.formatReal(valorLucro)), const Divider(), _buildResumoItem('Valor Total', MoneyFormatter.formatReal(valorTotal), destaque: true), const Divider(), _buildResumoItem('Valor por $_unidadeRendimento', MoneyFormatter.formatReal(valorUnitario), destaque: true)])));
   }
 
   Widget _buildResumoItem(String label, String valor, {bool destaque = false}) {
@@ -298,15 +474,25 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
       return;
     }
 
-    Produto? produtoSelecionado = produtoController.produtos.first;
+    // Filtrar os produtos que já estão na receita
+    final produtosDisponiveis = produtoController.produtos.where((produto) => !_ingredientes.any((i) => i.produto.id == produto.id)).toList();
+
+    if (produtosDisponiveis.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Todos os produtos já foram adicionados a esta receita.')));
+      return;
+    }
+
+    Produto? produtoSelecionado = produtosDisponiveis.first;
     String unidadeSelecionada = produtoSelecionado.unidade;
     final quantidadeController = TextEditingController();
     String? fracaoSelecionada;
 
     final unidades = ['kg', 'g', 'L', 'ml', 'unidade', 'colher de sopa', 'colher de chá', 'xícara'];
     final fracoes = ['1', '1/2', '1/3', '1/4', '2/3', '3/4'];
+    final unidadesComFracao = ['colher de sopa', 'colher de chá', 'xícara'];
 
     bool usarFracao = false;
+    bool unidadePermiteFracao = unidadesComFracao.contains(unidadeSelecionada);
 
     showDialog(
       context: context,
@@ -323,7 +509,7 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                         value: produtoSelecionado,
                         decoration: const InputDecoration(labelText: 'Produto', border: OutlineInputBorder()),
                         items:
-                            produtoController.produtos.map((produto) {
+                            produtosDisponiveis.map((produto) {
                               return DropdownMenuItem<Produto>(value: produto, child: Text(produto.nome));
                             }).toList(),
                         onChanged: (produto) {
@@ -333,6 +519,13 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                               // Mantém a unidade anterior se possível, ou usa a do produto
                               if (!unidades.contains(unidadeSelecionada)) {
                                 unidadeSelecionada = produto.unidade;
+                              }
+                              // Verifica se a unidade selecionada permite fração
+                              unidadePermiteFracao = unidadesComFracao.contains(unidadeSelecionada);
+                              // Se a unidade não permitir fração, desabilita a opção
+                              if (!unidadePermiteFracao && usarFracao) {
+                                usarFracao = false;
+                                fracaoSelecionada = null;
                               }
                             });
                           }
@@ -344,21 +537,25 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                           const Text('Usar fração:'),
                           Switch(
                             value: usarFracao,
-                            onChanged: (value) {
-                              setState(() {
-                                usarFracao = value;
-                                // Limpa o campo de quantidade se mudar para fração
-                                if (value) {
-                                  quantidadeController.clear();
-                                  fracaoSelecionada = '1';
-                                } else {
-                                  fracaoSelecionada = null;
-                                }
-                              });
-                            },
+                            onChanged:
+                                unidadePermiteFracao
+                                    ? (value) {
+                                      setState(() {
+                                        usarFracao = value;
+                                        // Limpa o campo de quantidade se mudar para fração
+                                        if (value) {
+                                          quantidadeController.clear();
+                                          fracaoSelecionada = '1';
+                                        } else {
+                                          fracaoSelecionada = null;
+                                        }
+                                      });
+                                    }
+                                    : null,
                           ),
                         ],
                       ),
+                      if (!unidadePermiteFracao) const Padding(padding: EdgeInsets.only(top: 4.0), child: Text('A opção de fração só está disponível para colher de sopa, colher de chá e xícara', style: TextStyle(fontSize: 12, color: Colors.grey))),
                       const SizedBox(height: 8),
                       if (usarFracao)
                         Row(
@@ -395,6 +592,13 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                                   if (value != null) {
                                     setState(() {
                                       unidadeSelecionada = value;
+                                      // Verifica se a nova unidade permite fração
+                                      unidadePermiteFracao = unidadesComFracao.contains(value);
+                                      // Se a unidade não permitir fração, desabilita a opção
+                                      if (!unidadePermiteFracao && usarFracao) {
+                                        usarFracao = false;
+                                        fracaoSelecionada = null;
+                                      }
                                     });
                                   }
                                 },
@@ -420,6 +624,13 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                                   if (value != null) {
                                     setState(() {
                                       unidadeSelecionada = value;
+                                      // Verifica se a nova unidade permite fração
+                                      unidadePermiteFracao = unidadesComFracao.contains(value);
+                                      // Se a unidade não permitir fração, desabilita a opção
+                                      if (!unidadePermiteFracao && usarFracao) {
+                                        usarFracao = false;
+                                        fracaoSelecionada = null;
+                                      }
                                     });
                                   }
                                 },
@@ -482,8 +693,10 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
 
     final unidades = ['kg', 'g', 'L', 'ml', 'unidade', 'colher de sopa', 'colher de chá', 'xícara'];
     final fracoes = ['1', '1/2', '1/3', '1/4', '2/3', '3/4'];
+    final unidadesComFracao = ['colher de sopa', 'colher de chá', 'xícara'];
 
     bool usarFracao = ingrediente.fracao != null;
+    bool unidadePermiteFracao = unidadesComFracao.contains(unidadeSelecionada);
 
     showDialog(
       context: context,
@@ -500,13 +713,20 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                         value: produtoSelecionado,
                         decoration: const InputDecoration(labelText: 'Produto', border: OutlineInputBorder()),
                         items:
-                            produtoController.produtos.map((produto) {
+                            produtoController.produtos.where((produto) => produto.id == ingrediente.produto.id || !_ingredientes.any((i) => i.produto.id == produto.id)).map((produto) {
                               return DropdownMenuItem<Produto>(value: produto, child: Text(produto.nome));
                             }).toList(),
                         onChanged: (produto) {
                           if (produto != null) {
                             setState(() {
                               produtoSelecionado = produto;
+                              // Verifica se a unidade selecionada permite fração
+                              unidadePermiteFracao = unidadesComFracao.contains(unidadeSelecionada);
+                              // Se a unidade não permitir fração, desabilita a opção
+                              if (!unidadePermiteFracao && usarFracao) {
+                                usarFracao = false;
+                                fracaoSelecionada = null;
+                              }
                             });
                           }
                         },
@@ -517,24 +737,28 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                           const Text('Usar fração:'),
                           Switch(
                             value: usarFracao,
-                            onChanged: (value) {
-                              setState(() {
-                                usarFracao = value;
-                                // Limpa o campo de quantidade se mudar para fração
-                                if (value) {
-                                  quantidadeController.clear();
-                                  fracaoSelecionada = fracoes.contains(ingrediente.fracao) ? ingrediente.fracao : '1';
-                                } else {
-                                  fracaoSelecionada = null;
-                                  if (ingrediente.quantidade > 0) {
-                                    quantidadeController.text = ingrediente.quantidade.toString();
-                                  }
-                                }
-                              });
-                            },
+                            onChanged:
+                                unidadePermiteFracao
+                                    ? (value) {
+                                      setState(() {
+                                        usarFracao = value;
+                                        // Limpa o campo de quantidade se mudar para fração
+                                        if (value) {
+                                          quantidadeController.clear();
+                                          fracaoSelecionada = fracoes.contains(ingrediente.fracao) ? ingrediente.fracao : '1';
+                                        } else {
+                                          fracaoSelecionada = null;
+                                          if (ingrediente.quantidade > 0) {
+                                            quantidadeController.text = ingrediente.quantidade.toString();
+                                          }
+                                        }
+                                      });
+                                    }
+                                    : null,
                           ),
                         ],
                       ),
+                      if (!unidadePermiteFracao) const Padding(padding: EdgeInsets.only(top: 4.0), child: Text('A opção de fração só está disponível para colher de sopa, colher de chá e xícara', style: TextStyle(fontSize: 12, color: Colors.grey))),
                       const SizedBox(height: 8),
                       if (usarFracao)
                         Row(
@@ -571,6 +795,13 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                                   if (value != null) {
                                     setState(() {
                                       unidadeSelecionada = value;
+                                      // Verifica se a nova unidade permite fração
+                                      unidadePermiteFracao = unidadesComFracao.contains(value);
+                                      // Se a unidade não permitir fração, desabilita a opção
+                                      if (!unidadePermiteFracao && usarFracao) {
+                                        usarFracao = false;
+                                        fracaoSelecionada = null;
+                                      }
                                     });
                                   }
                                 },
@@ -596,6 +827,13 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                                   if (value != null) {
                                     setState(() {
                                       unidadeSelecionada = value;
+                                      // Verifica se a nova unidade permite fração
+                                      unidadePermiteFracao = unidadesComFracao.contains(value);
+                                      // Se a unidade não permitir fração, desabilita a opção
+                                      if (!unidadePermiteFracao && usarFracao) {
+                                        usarFracao = false;
+                                        fracaoSelecionada = null;
+                                      }
                                     });
                                   }
                                 },
@@ -646,26 +884,29 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
   }
 
   void _salvar() {
-    if (_ingredientes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Adicione pelo menos um ingrediente à receita.')));
-      return;
-    }
-
     if (_formKey.currentState!.validate()) {
-      final controller = context.read<ReceitaController>();
+      try {
+        if (_ingredientes.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Adicione pelo menos um ingrediente à receita')));
+          return;
+        }
 
-      final nome = _nomeController.text;
-      final rendimento = double.parse(_rendimentoController.text);
+        final controller = context.read<ReceitaController>();
+        final nome = _nomeController.text;
+        final rendimento = double.parse(_rendimentoController.text);
 
-      if (_isEdicao && _receitaOriginal != null) {
-        final receitaAtualizada = Receita(id: _receitaOriginal!.id, nome: nome, ingredientes: _ingredientes, percentualGastos: _percentualGastos, percentualMaoDeObra: _percentualMaoDeObra, rendimento: rendimento, unidadeRendimento: _unidadeRendimento, imagemUrl: _imagemUrl, dataUltimaAtualizacao: DateTime.now());
+        if (_isEdicao && _receitaOriginal != null) {
+          final receitaAtualizada = Receita(id: _receitaOriginal!.id, nome: nome, ingredientes: _ingredientes, percentualGastos: _percentualGastos, percentualMaoDeObra: _percentualMaoDeObra, rendimento: rendimento, unidadeRendimento: _unidadeRendimento, imagemUrl: _imagemUrl, dataUltimaAtualizacao: DateTime.now());
 
-        controller.atualizarReceita(receitaAtualizada);
-      } else {
-        controller.salvarReceita(nome: nome, ingredientes: _ingredientes, percentualGastos: _percentualGastos, percentualMaoDeObra: _percentualMaoDeObra, rendimento: rendimento, unidadeRendimento: _unidadeRendimento, imagemUrl: _imagemUrl);
+          controller.atualizarReceita(receitaAtualizada);
+        } else {
+          controller.salvarReceita(nome: nome, ingredientes: _ingredientes, percentualGastos: _percentualGastos, percentualMaoDeObra: _percentualMaoDeObra, rendimento: rendimento, unidadeRendimento: _unidadeRendimento, imagemUrl: _imagemUrl);
+        }
+
+        context.pop();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao salvar receita: $e')));
       }
-
-      context.pop();
     }
   }
 }

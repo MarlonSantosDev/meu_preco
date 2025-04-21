@@ -44,20 +44,39 @@ class Receita {
     DateTime? dataUltimaAtualizacao,
   }) : this.dataUltimaAtualizacao = dataUltimaAtualizacao ?? DateTime.now();
 
-  // Custo total dos ingredientes
+  // Custo total dos ingredientes (Valor da Receita)
   double get custoIngredientes {
     return ingredientes.fold(0, (sum, ingrediente) => sum + ingrediente.custoTotal);
   }
 
-  // Custo total com gastos "escondidos"
-  double get custoComGastos {
-    return custoIngredientes * (1 + percentualGastos);
+  // Valor dos gastos "escondidos" (porcentagem sobre o custo dos ingredientes)
+  double get valorGastosEscondidos {
+    return custoIngredientes * percentualGastos;
   }
 
-  // Valor final com mão de obra
+  // Valor da mão de obra (porcentagem sobre o custo dos ingredientes)
+  double get valorMaoDeObra {
+    return custoIngredientes * percentualMaoDeObra;
+  }
+
+  // Soma dos percentuais aplicados (gastos + mão de obra)
+  double get percentualTotal {
+    return percentualGastos + percentualMaoDeObra;
+  }
+
+  // Valor calculado dos percentuais (gastos + mão de obra)
+  double get valorPercentuais {
+    return custoIngredientes * percentualTotal;
+  }
+
+  // Valor do lucro (100% sobre o custo dos ingredientes)
+  double get valorLucro {
+    return custoIngredientes;
+  }
+
+  // Valor total da receita (ingredientes + gastos + mão de obra + lucro)
   double get valorTotal {
-    double valorBase = custoComGastos / (1 - percentualMaoDeObra);
-    return valorBase;
+    return custoIngredientes + valorPercentuais + valorLucro;
   }
 
   // Valor por unidade de rendimento (kg, unidade, etc.)

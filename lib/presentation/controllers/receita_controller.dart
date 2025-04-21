@@ -125,7 +125,7 @@ class ReceitaController extends ChangeNotifier {
     final novaLista = List<Ingrediente>.from(receita.ingredientes);
     novaLista.add(ingrediente);
 
-    final receitaAtualizada = Receita(id: receita.id, nome: receita.nome, ingredientes: novaLista, percentualGastos: receita.percentualGastos, percentualMaoDeObra: receita.percentualMaoDeObra, rendimento: receita.rendimento, unidadeRendimento: receita.unidadeRendimento, imagemUrl: receita.imagemUrl);
+    final receitaAtualizada = Receita(id: receita.id, nome: receita.nome, ingredientes: novaLista, percentualGastos: receita.percentualGastos, percentualMaoDeObra: receita.percentualMaoDeObra, rendimento: receita.rendimento, unidadeRendimento: receita.unidadeRendimento, imagemUrl: receita.imagemUrl, dataUltimaAtualizacao: DateTime.now());
 
     await atualizarReceita(receitaAtualizada);
   }
@@ -133,7 +133,7 @@ class ReceitaController extends ChangeNotifier {
   Future<void> removerIngrediente(Receita receita, String ingredienteId) async {
     final novaLista = receita.ingredientes.where((ingrediente) => ingrediente.id != ingredienteId).toList();
 
-    final receitaAtualizada = Receita(id: receita.id, nome: receita.nome, ingredientes: novaLista, percentualGastos: receita.percentualGastos, percentualMaoDeObra: receita.percentualMaoDeObra, rendimento: receita.rendimento, unidadeRendimento: receita.unidadeRendimento, imagemUrl: receita.imagemUrl);
+    final receitaAtualizada = Receita(id: receita.id, nome: receita.nome, ingredientes: novaLista, percentualGastos: receita.percentualGastos, percentualMaoDeObra: receita.percentualMaoDeObra, rendimento: receita.rendimento, unidadeRendimento: receita.unidadeRendimento, imagemUrl: receita.imagemUrl, dataUltimaAtualizacao: DateTime.now());
 
     await atualizarReceita(receitaAtualizada);
   }
@@ -145,7 +145,7 @@ class ReceitaController extends ChangeNotifier {
     if (index != -1) {
       novaLista[index] = Ingrediente(id: ingredienteId, produto: produto, quantidade: quantidade, unidade: unidade, fracao: fracao);
 
-      final receitaAtualizada = Receita(id: receita.id, nome: receita.nome, ingredientes: novaLista, percentualGastos: receita.percentualGastos, percentualMaoDeObra: receita.percentualMaoDeObra, rendimento: receita.rendimento, unidadeRendimento: receita.unidadeRendimento, imagemUrl: receita.imagemUrl);
+      final receitaAtualizada = Receita(id: receita.id, nome: receita.nome, ingredientes: novaLista, percentualGastos: receita.percentualGastos, percentualMaoDeObra: receita.percentualMaoDeObra, rendimento: receita.rendimento, unidadeRendimento: receita.unidadeRendimento, imagemUrl: receita.imagemUrl, dataUltimaAtualizacao: DateTime.now());
 
       await atualizarReceita(receitaAtualizada);
     }
