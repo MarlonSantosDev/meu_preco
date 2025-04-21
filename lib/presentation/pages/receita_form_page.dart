@@ -152,7 +152,9 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
 
   Future<void> _buscarImagens() async {
     if (_nomeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Digite o nome da receita para buscar imagens')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Digite o nome da receita para buscar imagens')));
       return;
     }
 
@@ -169,7 +171,9 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
       });
 
       if (imagens.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nenhuma imagem encontrada para esta receita')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Nenhuma imagem encontrada para esta receita')));
         return;
       }
 
@@ -216,7 +220,11 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
               width: double.maxFinite,
               height: 300,
               child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
                 itemCount: imagens.length,
                 itemBuilder: (context, index) {
                   return InkWell(
@@ -232,7 +240,14 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                         errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.error)),
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
-                          return Center(child: CircularProgressIndicator(value: loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null));
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value:
+                                  loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                      : null,
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -286,9 +301,44 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
   Widget _buildImageSelector() {
     return Column(
       children: [
-        GestureDetector(onTap: _mostrarOpcoesImagem, child: _imagemUrl != null ? Container(height: 200, width: double.infinity, decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), image: DecorationImage(image: _imagemUrl!.startsWith('http') ? NetworkImage(_imagemUrl!) as ImageProvider : FileImage(File(_imagemUrl!)) as ImageProvider, fit: BoxFit.cover))) : Container(height: 200, width: double.infinity, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: const [Icon(Icons.image, size: 64, color: Colors.grey), SizedBox(height: 8), Text('Toque para adicionar imagem', style: TextStyle(color: Colors.grey))]))),
+        GestureDetector(
+          onTap: _mostrarOpcoesImagem,
+          child:
+              _imagemUrl != null
+                  ? Container(
+                    height: 200,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      image: DecorationImage(
+                        image:
+                            _imagemUrl!.startsWith('http')
+                                ? NetworkImage(_imagemUrl!) as ImageProvider
+                                : FileImage(File(_imagemUrl!)) as ImageProvider,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  )
+                  : Container(
+                    height: 200,
+                    width: double.infinity,
+                    decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.image, size: 64, color: Colors.grey),
+                        SizedBox(height: 8),
+                        Text('Toque para adicionar imagem', style: TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+        ),
         const SizedBox(height: 8),
-        OutlinedButton.icon(onPressed: _mostrarOpcoesImagem, icon: const Icon(Icons.add_photo_alternate), label: const Text('Adicionar ou alterar imagem')),
+        OutlinedButton.icon(
+          onPressed: _mostrarOpcoesImagem,
+          icon: const Icon(Icons.add_photo_alternate),
+          label: const Text('Adicionar ou alterar imagem'),
+        ),
       ],
     );
   }
@@ -305,7 +355,12 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
     final produtoController = context.watch<ProdutoController>();
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isEdicao ? 'Editar Receita' : 'Cadastrar Receita'), backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white),
+      appBar: AppBar(
+        title: Text(_isEdicao ? 'Editar Receita' : 'Cadastrar Receita'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        actions: [IconButton(onPressed: _salvar, icon: const Icon(Icons.save))],
+      ),
       body:
           _carregando
               ? const Center(child: CircularProgressIndicator())
@@ -386,12 +441,28 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                       const SizedBox(height: 24),
                       const Divider(),
                       const SizedBox(height: 8),
-                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Ingredientes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), ElevatedButton.icon(onPressed: () => _mostrarDialogoAdicionarIngrediente(context), icon: const Icon(Icons.add), label: const Text('Adicionar'))]),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Ingredientes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          ElevatedButton.icon(
+                            onPressed: () => _mostrarDialogoAdicionarIngrediente(context),
+                            icon: const Icon(Icons.add),
+                            label: const Text('Adicionar'),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 8),
                       if (_ingredientes.isEmpty)
-                        const Card(child: Padding(padding: EdgeInsets.all(16.0), child: Text('Nenhum ingrediente adicionado', textAlign: TextAlign.center)))
+                        const Card(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text('Nenhum ingrediente adicionado', textAlign: TextAlign.center),
+                          ),
+                        )
                       else
                         ListView.builder(
+                          key: ValueKey(_ingredientes.length),
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: _ingredientes.length,
@@ -401,7 +472,13 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                               endActionPane: ActionPane(
                                 motion: const ScrollMotion(),
                                 children: [
-                                  SlidableAction(onPressed: (_) => _mostrarDialogoEditarIngrediente(context, ingrediente), backgroundColor: Colors.blue, foregroundColor: Colors.white, icon: Icons.edit, label: 'Editar'),
+                                  SlidableAction(
+                                    onPressed: (_) => _mostrarDialogoEditarIngrediente(context, ingrediente),
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    icon: Icons.edit,
+                                    label: 'Editar',
+                                  ),
                                   SlidableAction(
                                     onPressed: (_) {
                                       setState(() {
@@ -415,13 +492,36 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                                   ),
                                 ],
                               ),
-                              child: Card(child: ListTile(title: Text(ingrediente.produto.nome), subtitle: Text(ingrediente.fracao != null ? '${ingrediente.fracao} ${ingrediente.unidade}' : '${ingrediente.quantidade} ${ingrediente.unidade}'), trailing: Text(MoneyFormatter.formatReal(ingrediente.custoTotal), style: const TextStyle(fontWeight: FontWeight.bold)), onTap: () => _mostrarDialogoEditarIngrediente(context, ingrediente))),
+                              child: Card(
+                                child: ListTile(
+                                  title: Text(ingrediente.produto.nome),
+                                  subtitle: Text(
+                                    ingrediente.fracao != null
+                                        ? '${ingrediente.fracao} ${ingrediente.unidade}'
+                                        : '${ingrediente.quantidade} ${ingrediente.unidade}',
+                                  ),
+                                  trailing: Text(
+                                    MoneyFormatter.formatReal(ingrediente.custoTotal),
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  onTap: () => _mostrarDialogoEditarIngrediente(context, ingrediente),
+                                ),
+                              ),
                             );
                           },
                         ),
                       const SizedBox(height: 16),
-                      if (_ingredientes.isNotEmpty) ...[const Divider(), const SizedBox(height: 8), _buildResumoReceita(), const SizedBox(height: 24)],
-                      ElevatedButton(onPressed: _salvar, style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)), child: Text(_isEdicao ? 'Atualizar' : 'Cadastrar')),
+                      if (_ingredientes.isNotEmpty) ...[
+                        const Divider(),
+                        const SizedBox(height: 8),
+                        _buildResumoReceita(),
+                        const SizedBox(height: 24),
+                      ],
+                      ElevatedButton(
+                        onPressed: _salvar,
+                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                        child: Text(_isEdicao ? 'Atualizar' : 'Cadastrar'),
+                      ),
                     ],
                   ),
                 ),
@@ -433,7 +533,13 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label, style: const TextStyle(fontWeight: FontWeight.bold)), Text(NumberFormatter.formatPercent(value), style: const TextStyle(fontWeight: FontWeight.bold))]),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(NumberFormatter.formatPercent(value), style: const TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
         Slider(
           value: value,
           min: 0.0,
@@ -459,26 +565,73 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
     final rendimento = double.tryParse(_rendimentoController.text) ?? 1.0;
     final valorUnitario = rendimento > 0 ? valorTotal / rendimento : 0.0;
 
-    return Card(child: Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Resumo da Precificação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 16), _buildResumoItem('Custo dos Ingredientes', MoneyFormatter.formatReal(custoIngredientes)), const Divider(), _buildResumoItem('Gastos "escondidos" (${NumberFormatter.formatPercent(_percentualGastos)})', MoneyFormatter.formatReal(valorGastosEscondidos)), const Divider(), _buildResumoItem('Mão de obra (${NumberFormatter.formatPercent(_percentualMaoDeObra)})', MoneyFormatter.formatReal(valorMaoDeObra)), const Divider(), _buildResumoItem('Total percentuais (${NumberFormatter.formatPercent(percentualTotal)})', MoneyFormatter.formatReal(valorPercentuais)), const Divider(), _buildResumoItem('Lucro (100%)', MoneyFormatter.formatReal(valorLucro)), const Divider(), _buildResumoItem('Valor Total', MoneyFormatter.formatReal(valorTotal), destaque: true), const Divider(), _buildResumoItem('Valor por $_unidadeRendimento', MoneyFormatter.formatReal(valorUnitario), destaque: true)])));
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Resumo da Precificação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            _buildResumoItem('Custo dos Ingredientes', MoneyFormatter.formatReal(custoIngredientes)),
+            const Divider(),
+            _buildResumoItem(
+              'Gastos "escondidos" (${NumberFormatter.formatPercent(_percentualGastos)})',
+              MoneyFormatter.formatReal(valorGastosEscondidos),
+            ),
+            const Divider(),
+            _buildResumoItem(
+              'Mão de obra (${NumberFormatter.formatPercent(_percentualMaoDeObra)})',
+              MoneyFormatter.formatReal(valorMaoDeObra),
+            ),
+            const Divider(),
+            _buildResumoItem(
+              'Total percentuais (${NumberFormatter.formatPercent(percentualTotal)})',
+              MoneyFormatter.formatReal(valorPercentuais),
+            ),
+            const Divider(),
+            _buildResumoItem('Lucro (100%)', MoneyFormatter.formatReal(valorLucro)),
+            const Divider(),
+            _buildResumoItem('Valor Total', MoneyFormatter.formatReal(valorTotal), destaque: true),
+            const Divider(),
+            _buildResumoItem('Valor por $_unidadeRendimento', MoneyFormatter.formatReal(valorUnitario), destaque: true),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildResumoItem(String label, String valor, {bool destaque = false}) {
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label, style: TextStyle(fontWeight: destaque ? FontWeight.bold : FontWeight.normal)), Text(valor, style: TextStyle(fontWeight: destaque ? FontWeight.bold : FontWeight.normal, fontSize: destaque ? 16 : 14))]);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(fontWeight: destaque ? FontWeight.bold : FontWeight.normal)),
+        Text(
+          valor,
+          style: TextStyle(fontWeight: destaque ? FontWeight.bold : FontWeight.normal, fontSize: destaque ? 16 : 14),
+        ),
+      ],
+    );
   }
 
   void _mostrarDialogoAdicionarIngrediente(BuildContext context) {
     final produtoController = context.read<ProdutoController>();
 
     if (produtoController.produtos.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Não há produtos cadastrados. Cadastre produtos primeiro.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Não há produtos cadastrados. Cadastre produtos primeiro.')));
       return;
     }
 
     // Filtrar os produtos que já estão na receita
-    final produtosDisponiveis = produtoController.produtos.where((produto) => !_ingredientes.any((i) => i.produto.id == produto.id)).toList();
+    final produtosDisponiveis =
+        produtoController.produtos.where((produto) => !_ingredientes.any((i) => i.produto.id == produto.id)).toList();
 
     if (produtosDisponiveis.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Todos os produtos já foram adicionados a esta receita.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Todos os produtos já foram adicionados a esta receita.')));
       return;
     }
 
@@ -555,7 +708,14 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                           ),
                         ],
                       ),
-                      if (!unidadePermiteFracao) const Padding(padding: EdgeInsets.only(top: 4.0), child: Text('A opção de fração só está disponível para colher de sopa, colher de chá e xícara', style: TextStyle(fontSize: 12, color: Colors.grey))),
+                      if (!unidadePermiteFracao)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            'A opção de fração só está disponível para colher de sopa, colher de chá e xícara',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ),
                       const SizedBox(height: 8),
                       if (usarFracao)
                         Row(
@@ -581,6 +741,7 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                             ),
                             const SizedBox(width: 8),
                             Expanded(
+                              flex: 2,
                               child: DropdownButtonFormField<String>(
                                 value: unidadeSelecionada,
                                 decoration: const InputDecoration(labelText: 'Unidade', border: OutlineInputBorder()),
@@ -610,9 +771,21 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(flex: 2, child: TextFormField(controller: quantidadeController, decoration: const InputDecoration(labelText: 'Quantidade', border: OutlineInputBorder()), keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))])),
+                            Expanded(
+                              flex: 2,
+                              child: TextFormField(
+                                controller: quantidadeController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Quantidade',
+                                  border: OutlineInputBorder(),
+                                ),
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+                              ),
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
+                              flex: 2,
                               child: DropdownButtonFormField<String>(
                                 value: unidadeSelecionada,
                                 decoration: const InputDecoration(labelText: 'Unidade', border: OutlineInputBorder()),
@@ -645,8 +818,11 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                   TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
                   TextButton(
                     onPressed: () {
-                      if (!usarFracao && (quantidadeController.text.isEmpty || double.tryParse(quantidadeController.text) == null)) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Digite uma quantidade válida.')));
+                      if (!usarFracao &&
+                          (quantidadeController.text.isEmpty || double.tryParse(quantidadeController.text) == null)) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(const SnackBar(content: Text('Digite uma quantidade válida.')));
                         return;
                       }
 
@@ -660,13 +836,16 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                           quantidade = Ingrediente.converterFracao(fracaoSelecionada!);
                         }
 
-                        final novoIngrediente = Ingrediente(id: DateTime.now().millisecondsSinceEpoch.toString(), produto: produtoSelecionado!, quantidade: quantidade, unidade: unidadeSelecionada, fracao: usarFracao ? fracaoSelecionada : null);
+                        final novoIngrediente = Ingrediente(
+                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          produto: produtoSelecionado!,
+                          quantidade: quantidade,
+                          unidade: unidadeSelecionada,
+                          fracao: usarFracao ? fracaoSelecionada : null,
+                        );
 
-                        setState(() {
-                          _ingredientes.add(novoIngrediente);
-                        });
-
-                        Navigator.of(context).pop();
+                        // Fecha o diálogo e adiciona o ingrediente
+                        Navigator.of(context).pop(novoIngrediente);
                       }
                     },
                     child: const Text('Adicionar'),
@@ -675,7 +854,14 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
               );
             },
           ),
-    );
+    ).then((novoIngrediente) {
+      if (novoIngrediente != null) {
+        // Usar setState diretamente na classe principal
+        setState(() {
+          _ingredientes.add(novoIngrediente);
+        });
+      }
+    });
   }
 
   void _mostrarDialogoEditarIngrediente(BuildContext context, Ingrediente ingrediente) {
@@ -688,7 +874,9 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
 
     Produto? produtoSelecionado = ingrediente.produto;
     String unidadeSelecionada = ingrediente.unidade;
-    final quantidadeController = TextEditingController(text: ingrediente.fracao == null ? ingrediente.quantidade.toString() : '');
+    final quantidadeController = TextEditingController(
+      text: ingrediente.fracao == null ? ingrediente.quantidade.toString() : '',
+    );
     String? fracaoSelecionada = ingrediente.fracao;
 
     final unidades = ['kg', 'g', 'L', 'ml', 'unidade', 'colher de sopa', 'colher de chá', 'xícara'];
@@ -713,9 +901,16 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                         value: produtoSelecionado,
                         decoration: const InputDecoration(labelText: 'Produto', border: OutlineInputBorder()),
                         items:
-                            produtoController.produtos.where((produto) => produto.id == ingrediente.produto.id || !_ingredientes.any((i) => i.produto.id == produto.id)).map((produto) {
-                              return DropdownMenuItem<Produto>(value: produto, child: Text(produto.nome));
-                            }).toList(),
+                            produtoController.produtos
+                                .where(
+                                  (produto) =>
+                                      produto.id == ingrediente.produto.id ||
+                                      !_ingredientes.any((i) => i.produto.id == produto.id),
+                                )
+                                .map((produto) {
+                                  return DropdownMenuItem<Produto>(value: produto, child: Text(produto.nome));
+                                })
+                                .toList(),
                         onChanged: (produto) {
                           if (produto != null) {
                             setState(() {
@@ -745,7 +940,8 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                                         // Limpa o campo de quantidade se mudar para fração
                                         if (value) {
                                           quantidadeController.clear();
-                                          fracaoSelecionada = fracoes.contains(ingrediente.fracao) ? ingrediente.fracao : '1';
+                                          fracaoSelecionada =
+                                              fracoes.contains(ingrediente.fracao) ? ingrediente.fracao : '1';
                                         } else {
                                           fracaoSelecionada = null;
                                           if (ingrediente.quantidade > 0) {
@@ -758,14 +954,20 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                           ),
                         ],
                       ),
-                      if (!unidadePermiteFracao) const Padding(padding: EdgeInsets.only(top: 4.0), child: Text('A opção de fração só está disponível para colher de sopa, colher de chá e xícara', style: TextStyle(fontSize: 12, color: Colors.grey))),
+                      if (!unidadePermiteFracao)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            'A opção de fração só está disponível para colher de sopa, colher de chá e xícara',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ),
                       const SizedBox(height: 8),
                       if (usarFracao)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              flex: 2,
                               child: DropdownButtonFormField<String>(
                                 value: fracaoSelecionada ?? '1',
                                 decoration: const InputDecoration(labelText: 'Fração', border: OutlineInputBorder()),
@@ -813,7 +1015,17 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(flex: 2, child: TextFormField(controller: quantidadeController, decoration: const InputDecoration(labelText: 'Quantidade', border: OutlineInputBorder()), keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))])),
+                            Expanded(
+                              child: TextFormField(
+                                controller: quantidadeController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Quantidade',
+                                  border: OutlineInputBorder(),
+                                ),
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+                              ),
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: DropdownButtonFormField<String>(
@@ -848,8 +1060,11 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                   TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
                   TextButton(
                     onPressed: () {
-                      if (!usarFracao && (quantidadeController.text.isEmpty || double.tryParse(quantidadeController.text) == null)) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Digite uma quantidade válida.')));
+                      if (!usarFracao &&
+                          (quantidadeController.text.isEmpty || double.tryParse(quantidadeController.text) == null)) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(const SnackBar(content: Text('Digite uma quantidade válida.')));
                         return;
                       }
 
@@ -866,12 +1081,17 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
                         // Encontrar e substituir o ingrediente
                         final index = _ingredientes.indexWhere((i) => i.id == ingrediente.id);
                         if (index != -1) {
-                          setState(() {
-                            _ingredientes[index] = Ingrediente(id: ingrediente.id, produto: produtoSelecionado!, quantidade: quantidade, unidade: unidadeSelecionada, fracao: usarFracao ? fracaoSelecionada : null);
-                          });
-                        }
+                          // Cria o ingrediente atualizado e retorna no pop
+                          final ingredienteAtualizado = Ingrediente(
+                            id: ingrediente.id,
+                            produto: produtoSelecionado!,
+                            quantidade: quantidade,
+                            unidade: unidadeSelecionada,
+                            fracao: usarFracao ? fracaoSelecionada : null,
+                          );
 
-                        Navigator.of(context).pop();
+                          Navigator.of(context).pop({'index': index, 'ingrediente': ingredienteAtualizado});
+                        }
                       }
                     },
                     child: const Text('Atualizar'),
@@ -880,14 +1100,25 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
               );
             },
           ),
-    );
+    ).then((result) {
+      if (result != null && result is Map<String, dynamic>) {
+        final int index = result['index'];
+        final Ingrediente ingredienteAtualizado = result['ingrediente'];
+
+        setState(() {
+          _ingredientes[index] = ingredienteAtualizado;
+        });
+      }
+    });
   }
 
   void _salvar() {
     if (_formKey.currentState!.validate()) {
       try {
         if (_ingredientes.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Adicione pelo menos um ingrediente à receita')));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Adicione pelo menos um ingrediente à receita')));
           return;
         }
 
@@ -896,11 +1127,29 @@ class _ReceitaFormPageState extends State<ReceitaFormPage> {
         final rendimento = double.parse(_rendimentoController.text);
 
         if (_isEdicao && _receitaOriginal != null) {
-          final receitaAtualizada = Receita(id: _receitaOriginal!.id, nome: nome, ingredientes: _ingredientes, percentualGastos: _percentualGastos, percentualMaoDeObra: _percentualMaoDeObra, rendimento: rendimento, unidadeRendimento: _unidadeRendimento, imagemUrl: _imagemUrl, dataUltimaAtualizacao: DateTime.now());
+          final receitaAtualizada = Receita(
+            id: _receitaOriginal!.id,
+            nome: nome,
+            ingredientes: _ingredientes,
+            percentualGastos: _percentualGastos,
+            percentualMaoDeObra: _percentualMaoDeObra,
+            rendimento: rendimento,
+            unidadeRendimento: _unidadeRendimento,
+            imagemUrl: _imagemUrl,
+            dataUltimaAtualizacao: DateTime.now(),
+          );
 
           controller.atualizarReceita(receitaAtualizada);
         } else {
-          controller.salvarReceita(nome: nome, ingredientes: _ingredientes, percentualGastos: _percentualGastos, percentualMaoDeObra: _percentualMaoDeObra, rendimento: rendimento, unidadeRendimento: _unidadeRendimento, imagemUrl: _imagemUrl);
+          controller.salvarReceita(
+            nome: nome,
+            ingredientes: _ingredientes,
+            percentualGastos: _percentualGastos,
+            percentualMaoDeObra: _percentualMaoDeObra,
+            rendimento: rendimento,
+            unidadeRendimento: _unidadeRendimento,
+            imagemUrl: _imagemUrl,
+          );
         }
 
         context.pop();
