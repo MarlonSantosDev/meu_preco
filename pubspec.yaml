@@ -1,5 +1,5 @@
 name: meu_preco
-description: "Aplicação para precificação de produtos e receitas."
+description: "Aplicação completa para precificação de produtos e receitas. Calcule custos, margens de lucro e preços de venda de forma automática e detalhada. Ideal para empreendedores, cozinheiros e pequenos negócios."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 

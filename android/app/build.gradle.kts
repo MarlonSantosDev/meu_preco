@@ -30,11 +30,49 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            // Configuração para assinatura de release
+            // Você precisará criar uma keystore e configurar estas propriedades
+            keyAlias = "meu_preco_key"
+            keyPassword = "meu_preco_2025"
+            storeFile = file("../keystore/meu_preco.jks")
+            storePassword = "meu_preco_2025"
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Configuração otimizada para release
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+            isShrinkResources = false
+            // proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            
+            // Configurações de otimização
+            isDebuggable = false
+            isJniDebuggable = false
+            isRenderscriptDebuggable = false
+            isPseudoLocalesEnabled = false
+            isZipAlignEnabled = true
+        }
+        debug {
+            // Configuração para debug
             signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = true
+        }
+    }
+
+    // Configurações de bundle para otimização
+    bundle {
+        language {
+            enableSplit = true
+        }
+        density {
+            enableSplit = true
+        }
+        abi {
+            enableSplit = true
         }
     }
 }
