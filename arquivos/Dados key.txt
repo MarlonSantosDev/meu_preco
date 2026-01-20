@@ -1,0 +1,2 @@
+- **Alias**: `meu_preco_key`
+- **Senha**: `meu_preco_2025`

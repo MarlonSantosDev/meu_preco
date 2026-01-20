@@ -9,12 +9,12 @@ class ImageSelector extends StatelessWidget {
   final String placeholder;
 
   const ImageSelector({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.onTap,
     this.height = 200,
     this.placeholder = 'Toque para adicionar imagem',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,35 +22,33 @@ class ImageSelector extends StatelessWidget {
       children: [
         GestureDetector(
           onTap: onTap,
-          child:
-              imageUrl != null
-                  ? Container(
-                    height: height,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      image: DecorationImage(
-                        image:
-                            imageUrl!.startsWith('http')
-                                ? NetworkImage(imageUrl!) as ImageProvider
-                                : FileImage(File(imageUrl!)) as ImageProvider,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  )
-                  : Container(
-                    height: height,
-                    width: double.infinity,
-                    decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.image, size: 64, color: Colors.grey),
-                        const SizedBox(height: 8),
-                        Text(placeholder, style: const TextStyle(color: Colors.grey)),
-                      ],
+          child: imageUrl != null
+              ? Container(
+                  height: height,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    image: DecorationImage(
+                      image: imageUrl!.startsWith('http')
+                          ? NetworkImage(imageUrl!) as ImageProvider
+                          : FileImage(File(imageUrl!)) as ImageProvider,
+                      fit: BoxFit.cover,
                     ),
                   ),
+                )
+              : Container(
+                  height: height,
+                  width: double.infinity,
+                  decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.image, size: 64, color: Colors.grey),
+                      const SizedBox(height: 8),
+                      Text(placeholder, style: const TextStyle(color: Colors.grey)),
+                    ],
+                  ),
+                ),
         ),
         const SizedBox(height: 8),
         OutlinedButton.icon(

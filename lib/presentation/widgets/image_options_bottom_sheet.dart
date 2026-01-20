@@ -7,11 +7,11 @@ class ImageOptionsBottomSheet extends StatelessWidget {
   final VoidCallback onSearchTap;
 
   const ImageOptionsBottomSheet({
-    Key? key,
+    super.key,
     required this.onGalleryTap,
     required this.onCameraTap,
     required this.onSearchTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -63,8 +63,7 @@ Future<void> mostrarOpcoesImagem({
 }) {
   return showModalBottomSheet(
     context: context,
-    builder:
-        (context) =>
-            ImageOptionsBottomSheet(onGalleryTap: onGalleryTap, onCameraTap: onCameraTap, onSearchTap: onSearchTap),
+    builder: (context) =>
+        ImageOptionsBottomSheet(onGalleryTap: onGalleryTap, onCameraTap: onCameraTap, onSearchTap: onSearchTap),
   );
 }

@@ -62,80 +62,79 @@ class _ReceitaDetalhesPageState extends State<ReceitaDetalhesPage> {
             IconButton(icon: const Icon(Icons.edit), onPressed: () => context.push('/receitas/editar/${_receita!.id}')),
         ],
       ),
-      body:
-          _carregando
-              ? const Center(child: CircularProgressIndicator())
-              : _erro != null
-              ? Center(child: Text(_erro!))
-              : _receita == null
-              ? const Center(child: Text('Receita não encontrada'))
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(_receita!.nome, style: Theme.of(context).textTheme.titleLarge),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Rendimento: ${_receita!.rendimento} ${_receita!.unidadeRendimento}',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(Icons.update, size: 16, color: Colors.grey[600]),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Última atualização: ${DateFormat('dd/MM/yyyy HH:mm').format(_receita!.dataUltimaAtualizacao)}',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+      body: _carregando
+          ? const Center(child: CircularProgressIndicator())
+          : _erro != null
+          ? Center(child: Text(_erro!))
+          : _receita == null
+          ? const Center(child: Text('Receita não encontrada'))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_receita!.nome, style: Theme.of(context).textTheme.titleLarge),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Rendimento: ${_receita!.rendimento} ${_receita!.unidadeRendimento}',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(Icons.update, size: 16, color: Colors.grey[600]),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Última atualização: ${DateFormat('dd/MM/yyyy HH:mm').format(_receita!.dataUltimaAtualizacao)}',
+                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Ingredientes',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _receita!.ingredientes.length,
-                          separatorBuilder: (_, __) => const Divider(),
-                          itemBuilder: (context, index) {
-                            final ingrediente = _receita!.ingredientes[index];
-                            return ListTile(
-                              title: Text(ingrediente.produto.nome),
-                              subtitle: Text('${ingrediente.quantidade} ${ingrediente.unidade}'),
-                              trailing: Text(MoneyFormatter.formatReal(ingrediente.custoTotal)),
-                            );
-                          },
-                        ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Ingredientes',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _receita!.ingredientes.length,
+                        separatorBuilder: (context, index) => const Divider(),
+                        itemBuilder: (context, index) {
+                          final ingrediente = _receita!.ingredientes[index];
+                          return ListTile(
+                            title: Text(ingrediente.produto.nome),
+                            subtitle: Text('${ingrediente.quantidade} ${ingrediente.unidade}'),
+                            trailing: Text(MoneyFormatter.formatReal(ingrediente.custoTotal)),
+                          );
+                        },
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Precificação',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildCardPrecificacao(),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Precificação',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildCardPrecificacao(),
+                ],
               ),
+            ),
     );
   }
 

@@ -7,11 +7,11 @@ class ImageSelectionDialog extends StatelessWidget {
   final String title;
 
   const ImageSelectionDialog({
-    Key? key,
+    super.key,
     required this.imagens,
     required this.onImageSelected,
     this.title = 'Selecione uma imagem',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -55,10 +55,9 @@ class ImageSelectionDialog extends StatelessWidget {
                               if (loadingProgress == null) return child;
                               return Center(
                                 child: CircularProgressIndicator(
-                                  value:
-                                      loadingProgress.expectedTotalBytes != null
-                                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                          : null,
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                      : null,
                                 ),
                               );
                             },
@@ -87,7 +86,7 @@ class ImageSelectionDialog extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.8),
+                              color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.8),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
