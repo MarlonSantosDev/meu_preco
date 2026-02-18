@@ -42,7 +42,8 @@ class Receita {
     required this.unidadeRendimento,
     this.imagemUrl,
     DateTime? dataUltimaAtualizacao,
-  }) : this.dataUltimaAtualizacao = dataUltimaAtualizacao ?? DateTime.now();
+  }) : dataUltimaAtualizacao = dataUltimaAtualizacao ?? DateTime.now(),
+       super();
 
   // Custo total dos ingredientes (Valor da Receita)
   double get custoIngredientes {

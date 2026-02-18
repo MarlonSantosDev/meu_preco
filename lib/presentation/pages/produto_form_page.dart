@@ -230,110 +230,108 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
       ),
-      body:
-          _carregando
-              ? const Center(child: CircularProgressIndicator())
-              : _erro != null
-              ? Center(child: Text(_erro!))
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildImageSelector(),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _nomeController,
-                        decoration: const InputDecoration(labelText: 'Nome do Produto', border: OutlineInputBorder()),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Digite o nome do produto';
-                          }
+      body: _carregando
+          ? const Center(child: CircularProgressIndicator())
+          : _erro != null
+          ? Center(child: Text(_erro!))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildImageSelector(),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _nomeController,
+                      decoration: const InputDecoration(labelText: 'Nome do Produto', border: OutlineInputBorder()),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Digite o nome do produto';
+                        }
 
-                          // Verificar se já existe um produto com este nome
-                          final controller = context.read<ProdutoController>();
-                          if (controller.existeProdutoComNome(
-                            value,
-                            idIgnorar: _isEdicao ? _produtoOriginal?.id : null,
-                          )) {
-                            return 'Já existe um produto com este nome';
-                          }
+                        // Verificar se já existe um produto com este nome
+                        final controller = context.read<ProdutoController>();
+                        if (controller.existeProdutoComNome(
+                          value,
+                          idIgnorar: _isEdicao ? _produtoOriginal?.id : null,
+                        )) {
+                          return 'Já existe um produto com este nome';
+                        }
 
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _precoController,
-                        decoration: const InputDecoration(labelText: 'Preço (R\$)', border: OutlineInputBorder()),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Digite o preço';
-                          }
-                          if (double.tryParse(value) == null) {
-                            return 'Digite um preço válido';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: TextFormField(
-                              controller: _quantidadeController,
-                              decoration: const InputDecoration(labelText: 'Quantidade', border: OutlineInputBorder()),
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Digite a quantidade';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'Digite uma quantidade válida';
-                                }
-                                return null;
-                              },
-                            ),
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _precoController,
+                      decoration: const InputDecoration(labelText: 'Preço (R\$)', border: OutlineInputBorder()),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Digite o preço';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Digite um preço válido';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            controller: _quantidadeController,
+                            decoration: const InputDecoration(labelText: 'Quantidade', border: OutlineInputBorder()),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Digite a quantidade';
+                              }
+                              if (double.tryParse(value) == null) {
+                                return 'Digite uma quantidade válida';
+                              }
+                              return null;
+                            },
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              value: _unidade,
-                              decoration: const InputDecoration(labelText: 'Unidade', border: OutlineInputBorder()),
-                              items:
-                                  _unidades.map((unidade) {
-                                    return DropdownMenuItem<String>(value: unidade, child: Text(unidade));
-                                  }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() {
-                                    _unidade = value;
-                                  });
-                                }
-                              },
-                            ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: _unidade,
+                            decoration: const InputDecoration(labelText: 'Unidade', border: OutlineInputBorder()),
+                            items: _unidades.map((unidade) {
+                              return DropdownMenuItem<String>(value: unidade, child: Text(unidade));
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _unidade = value;
+                                });
+                              }
+                            },
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      if (_isEdicao) _buildPrecoUnitario(),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _salvar,
-                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-                        child: Text(_isEdicao ? 'Atualizar' : 'Cadastrar'),
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    if (_isEdicao) _buildPrecoUnitario(),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _salvar,
+                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                      child: Text(_isEdicao ? 'Atualizar' : 'Cadastrar'),
+                    ),
+                  ],
                 ),
               ),
+            ),
     );
   }
 
@@ -389,8 +387,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage> {
 
         final nome = _nomeController.text;
         final precoTexto = _precoController.text.replaceAll('R\$', '').trim();
-        final precoFormatado =
-            precoTexto.contains(',') ? precoTexto.replaceAll('.', '').replaceAll(',', '.') : precoTexto;
+        final precoFormatado = precoTexto.contains(',')
+            ? precoTexto.replaceAll('.', '').replaceAll(',', '.')
+            : precoTexto;
 
         final preco = double.parse(precoFormatado);
         final quantidade = double.parse(_quantidadeController.text);
